@@ -1,3 +1,6 @@
 spring:
   application:
-    name: api
+    name: api-shift
+
+  datasource:
+    url: ${DB_URL}
