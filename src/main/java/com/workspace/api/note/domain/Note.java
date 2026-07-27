@@ -3,6 +3,7 @@ package com.workspace.api.note.domain;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -10,16 +11,17 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Note {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private Long id;
+    private String id;
     private String title;
 
     @Column(columnDefinition = "TEXT")
     private String description;
     private LocalDateTime edited;
-    private Boolean favorite = false;
+    private Boolean favourite = false;
     private Boolean fixed   = false;
     private LocalDateTime fixedAt;
 }

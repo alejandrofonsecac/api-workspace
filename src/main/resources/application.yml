@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: workspace-api
+
+  datasource:
+    # URL limpa com jdbc: no começo e SEM usuário/senha dentro dela
+    url: jdbc:postgresql://db.qbvuitlcghmsdgshcacd.supabase.co:5432/postgres
+    username: postgres
+    password: 743898yu@5opa
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

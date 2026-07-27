@@ -18,9 +18,9 @@ public class GetTest implements CommandLineRunner {
     public void run(String @NonNull ... strings) {
         noteRepository.deleteAll();
 
-        Note note1 = new Note(null, "Teste Nota 1", "Teste Nota fodona1");
-        Note note2 = new Note(null, "Teste Nota 2", "Teste Nota fodona2");
-        Note note3 = new Note(null, "Teste Nota 3", "Teste Nota fodona3");
+        Note note1 = new Note(null, "Teste Nota 1", "Teste Nota fodona1", null, null, null, null);
+        Note note2 = new Note(null, "Teste Nota 2", "Teste Nota fodona2", null, null, null, null);
+        Note note3 = new Note(null, "Teste Nota 3", "Teste Nota fodona3", null, null, null, null);
 
         noteRepository.saveAll(List.of(note1, note2, note3));
     }

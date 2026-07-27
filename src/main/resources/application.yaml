@@ -1,6 +1,0 @@
-spring:
-  application:
-    name: api-shift
-
-  datasource:
-    url: ${DB_URL}
