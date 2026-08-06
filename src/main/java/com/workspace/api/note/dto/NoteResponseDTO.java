@@ -1,7 +1,6 @@
 package com.workspace.api.note.dto;
 
 import com.workspace.api.note.domain.Note;
-
 import java.time.LocalDateTime;
 
 public record NoteResponseDTO(String id, String title, String description, LocalDateTime edited, Boolean favourite, Boolean fixed, LocalDateTime fixedAt) {
