@@ -2,7 +2,8 @@ package com.workspace.api.habit.controller;
 
 import com.workspace.api.habit.dto.HabitResponseDTO;
 import com.workspace.api.habit.service.HabitService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,15 +11,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("habit")
-@AllArgsConstructor
+@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:8080")
 public class HabitController {
-    public HabitService habitService;
+    public final HabitService habitService;
 
     @PostMapping
     public ResponseEntity<HabitResponseDTO> createHabit(@RequestBody HabitResponseDTO dto){
         HabitResponseDTO createdHabit = habitService.createHabit(dto);
-        return  ResponseEntity.ok().body(habitService.createHabit(createdHabit));
+        return  ResponseEntity.status(HttpStatus.CREATED).body(createdHabit);
     }
 
     @GetMapping

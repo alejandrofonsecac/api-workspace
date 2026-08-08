@@ -29,16 +29,8 @@ public class NoteService {
         note.setFixed(dto.fixed());
         note.setFixedAt(dto.fixedAt());
 
-        Note noteSalva = noteRepository.save(note);
+        Note noteSaved = noteRepository.save(note);
 
-        return new NoteResponseDTO(
-                noteSalva.getId(),
-                noteSalva.getTitle(),
-                noteSalva.getDescription(),
-                noteSalva.getEdited(),
-                noteSalva.getFavourite(),
-                noteSalva.getFixed(),
-                noteSalva.getFixedAt()
-        );
+        return new NoteResponseDTO(noteSaved);
     }
 }
