@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Entity
 public class Habit {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private Integer id;
     private String name;
 
