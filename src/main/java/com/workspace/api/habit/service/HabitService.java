@@ -6,6 +6,8 @@ import com.workspace.api.habit.repository.HabitRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class HabitService {
@@ -32,5 +34,18 @@ public class HabitService {
                 habitSaved.getObjective(),
                 habitSaved.getObservation()
         );
+    }
+
+    public List<HabitResponseDTO> findAllHabits(){
+        return habitRepository.findAll().stream()
+                .map(habit -> new HabitResponseDTO(
+                        habit.getId(),
+                        habit.getName(),
+                        habit.getCategory(),
+                        habit.getFrequencyEveryDay(),
+                        habit.getLocalDate(),
+                        habit.getObjective(),
+                        habit.getObservation()
+                )).toList();
     }
 }

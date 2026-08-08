@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("habit")
 @AllArgsConstructor
@@ -17,5 +19,10 @@ public class HabitController {
     public ResponseEntity<HabitResponseDTO> createHabit(@RequestBody HabitResponseDTO dto){
         HabitResponseDTO createdHabit = habitService.createHabit(dto);
         return  ResponseEntity.ok().body(habitService.createHabit(createdHabit));
+    }
+
+    @GetMapping
+    public List<HabitResponseDTO> getAllHabit(){
+        return habitService.findAllHabits();
     }
 }
