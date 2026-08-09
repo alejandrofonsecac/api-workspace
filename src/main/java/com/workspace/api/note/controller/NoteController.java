@@ -3,17 +3,19 @@ package com.workspace.api.note.controller;
 import com.workspace.api.note.dto.NoteResponseDTO;
 import com.workspace.api.note.service.NoteService;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
-@RequestMapping("notes")
+@RequestMapping("/notes")
 @CrossOrigin(origins = "http://localhost:4200")
 public class NoteController {
-    private NoteService noteService;
+    private final NoteService noteService;
 
     @GetMapping
     public List<NoteResponseDTO> getNotes(){
@@ -23,6 +25,6 @@ public class NoteController {
     @PostMapping
     public ResponseEntity<NoteResponseDTO> saveNote(@RequestBody NoteResponseDTO dto){
         NoteResponseDTO savedNote = noteService.saveNote(dto);
-        return ResponseEntity.ok().body(savedNote);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
     }
 }
