@@ -3,7 +3,7 @@ package com.workspace.api.tasks.service;
 import com.workspace.api.tasks.domain.Tasks;
 import com.workspace.api.tasks.dto.TasksDTO;
 import com.workspace.api.tasks.repository.TasksRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -11,9 +11,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TasksService {
-    private TasksRepository tasksRepository;
+    private final TasksRepository tasksRepository;
 
     public List<TasksDTO> searchAllTasks(){
         return tasksRepository.findAll().stream()
@@ -28,7 +28,7 @@ public class TasksService {
         tasks.setDueLabel(dto.dueLabel());
         tasks.setPeriod(dto.period());
         tasks.setProject(dto.project());
-        tasks.setCompleted(dto.completed() != null ? dto.completed() : false);
+        tasks.setCompleted(dto.completed() != null && dto.completed());
         tasks.setNotes(dto.notes());
         tasks.setAssignee(dto.assignee());
 
