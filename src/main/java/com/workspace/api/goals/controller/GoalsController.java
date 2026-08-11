@@ -1,0 +1,28 @@
+package com.workspace.api.goals.controller;
+
+import com.workspace.api.goals.dto.GoalsResponseDTO;
+import com.workspace.api.goals.service.GoalsService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/goals")
+public class GoalsController {
+    private final GoalsService goalsService;
+
+    @GetMapping
+    public List<GoalsResponseDTO> getAllGoals(){
+        return goalsService.getAllGoals();
+    }
+
+    @PostMapping
+    public ResponseEntity<GoalsResponseDTO> createGoal(@RequestBody GoalsResponseDTO dto){
+        GoalsResponseDTO goal = goalsService.createGoals(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(goal);
+    }
+}

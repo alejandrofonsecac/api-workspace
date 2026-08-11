@@ -21,6 +21,7 @@ public class TaskService {
 
     public TaskResponseDTO createTask(TaskResponseDTO dto){
         Task task = new Task();
+        task.setId(dto.id());
         task.setName(dto.name());
         task.setDate(dto.date());
         task.setExecutionTime(dto.executionTime());
