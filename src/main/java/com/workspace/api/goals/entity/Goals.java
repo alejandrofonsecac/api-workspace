@@ -2,7 +2,7 @@ package com.workspace.api.goals.entity;
 
 import com.workspace.api.habit.entity.Category;
 import com.workspace.api.habit.entity.Habit;
-import com.workspace.api.task.entity.Priority;
+import com.workspace.api.util.domain.Priority;
 import jakarta.persistence.*;
 import lombok.Data;
 

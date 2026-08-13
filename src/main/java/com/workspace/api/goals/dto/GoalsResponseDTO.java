@@ -2,7 +2,7 @@ package com.workspace.api.goals.dto;
 
 import com.workspace.api.goals.entity.Goals;
 import com.workspace.api.habit.entity.Category;
-import com.workspace.api.task.entity.Priority;
+import com.workspace.api.util.domain.Priority;
 
 public record GoalsResponseDTO (Integer id, String name, String expectedTarget, Priority priority, Category category, Integer habitId){
     public GoalsResponseDTO(Goals saveGoal) {

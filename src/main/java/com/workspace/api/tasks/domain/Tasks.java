@@ -15,7 +15,9 @@ public class Tasks {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     private String title;
+
     private String priority;
+
     private String dueLabel;
     private String period;
     private String project;
