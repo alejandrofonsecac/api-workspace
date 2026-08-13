@@ -1,16 +1,16 @@
 package com.workspace.api.event.controller;
 
-import com.workspace.api.event.domain.Event;
 import com.workspace.api.event.dto.EventResponseDTO;
 import com.workspace.api.event.service.EventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping
+@RequestMapping("/event")
 @RequiredArgsConstructor
 public class EventController {
     private final EventService eventService;
@@ -20,7 +20,9 @@ public class EventController {
         return eventService.searchAllEvents();
     }
 
-    public ResponseEntity<EventResponseDTO> getEventsByName(@RequestBody EventResponseDTO dto) {
-
+    @PostMapping
+    public ResponseEntity<EventResponseDTO> createEvent(@RequestBody EventResponseDTO dto) {
+        EventResponseDTO event = eventService.insertEvent(dto);
+        return  ResponseEntity.status(HttpStatus.CREATED).body(event);
     }
 }

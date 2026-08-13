@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Table(name = "tb_tasks")
 @Entity
 @Data
@@ -19,11 +21,11 @@ public class Tasks {
     private String priority;
 
     private String dueLabel;
-    private String period;
-    private String project;
     private Boolean completed = false;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
-    private String assignee;
+
+    private LocalDate taskCreatedDate;
+    private LocalDate dueDate;
 }

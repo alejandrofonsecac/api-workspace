@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @AllArgsConstructor
@@ -15,9 +16,14 @@ import java.util.List;
 public class TasksController {
     private TasksService tasksService;
 
-    @GetMapping
+    @GetMapping("/getTask")
     public List<TasksDTO> getTasks(){
         return tasksService.searchAllTasks();
+    }
+
+    @GetMapping("/taskByDate")
+    public List<TasksDTO> getTasksByDate(){
+        return tasksService.findTasksByDate();
     }
 
     @PostMapping
@@ -37,4 +43,6 @@ public class TasksController {
         tasksService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }

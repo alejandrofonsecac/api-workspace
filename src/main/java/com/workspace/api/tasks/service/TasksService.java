@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -26,11 +28,11 @@ public class TasksService {
         tasks.setTitle(dto.title());
         tasks.setPriority(dto.priority());
         tasks.setDueLabel(dto.dueLabel());
-        tasks.setPeriod(dto.period());
-        tasks.setProject(dto.project());
         tasks.setCompleted(dto.completed() != null && dto.completed());
         tasks.setNotes(dto.notes());
-        tasks.setAssignee(dto.assignee());
+
+        tasks.setTaskCreatedDate(LocalDate.now());
+        tasks.setDueDate(LocalDate.now());
 
         Tasks savedTask = tasksRepository.save(tasks);
 
@@ -44,11 +46,8 @@ public class TasksService {
         if (dto.title() != null) tasks.setTitle(dto.title());
         if (dto.priority() != null) tasks.setPriority(dto.priority());
         if (dto.dueLabel() != null) tasks.setDueLabel(dto.dueLabel());
-        if (dto.period() != null) tasks.setPeriod(dto.period());
-        if (dto.project() != null) tasks.setProject(dto.project());
         if (dto.completed() != null) tasks.setCompleted(dto.completed());
         if (dto.notes() != null) tasks.setNotes(dto.notes());
-        if (dto.assignee() != null) tasks.setAssignee(dto.assignee());
 
         Tasks updatedTask = tasksRepository.save(tasks);
 
@@ -60,5 +59,12 @@ public class TasksService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + id);
         }
         tasksRepository.deleteById(id);
+    }
+
+    public List<TasksDTO> findTasksByDate(){
+        LocalDate dateToday = LocalDate.now();
+        return  tasksRepository.findByDueDate(dateToday).stream()
+                .map(TasksDTO::new)
+                .toList();
     }
 }
