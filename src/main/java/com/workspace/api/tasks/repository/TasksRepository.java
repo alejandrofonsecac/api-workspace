@@ -12,4 +12,7 @@ import java.util.List;
 public interface TasksRepository extends JpaRepository<Tasks, Long> {
     List<Tasks> findByTaskCreatedDate(LocalDate date);
     List<Tasks> findByDueDate(LocalDate date);
+
+    long countByDueDate(LocalDate date);
+    long countByTaskCreatedDate(LocalDate date);
 }

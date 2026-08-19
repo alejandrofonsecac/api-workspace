@@ -22,8 +22,8 @@ public class TasksController {
     }
 
     @GetMapping("/taskByDate")
-    public List<TasksDTO> getTasksByDate(){
-        return tasksService.findTasksByDate();
+    public long getTasksByDate(){
+        return tasksService.countTasks();
     }
 
     @PostMapping
@@ -43,6 +43,4 @@ public class TasksController {
         tasksService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }
-
-
 }

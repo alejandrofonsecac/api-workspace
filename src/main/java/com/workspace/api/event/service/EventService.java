@@ -6,6 +6,7 @@ import com.workspace.api.event.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -31,5 +32,9 @@ public class EventService {
         Event eventSaved = eventRepository.save(event);
 
         return new EventResponseDTO(eventSaved);
+    }
+
+    public long countEvents() {
+        return eventRepository.countByDueDate(LocalDate.now());
     }
 }
