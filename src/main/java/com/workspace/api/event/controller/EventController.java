@@ -29,6 +29,11 @@ public class EventController {
         return eventService.findAll();
     }
 
+    @GetMapping("/getEventCount")
+    public long getEventCount() {
+        return eventService.countEvents();
+    }
+
     @PostMapping
     public ResponseEntity<EventResponseDTO> createEvent(@Valid @RequestBody EventRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(request));

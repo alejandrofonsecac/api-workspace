@@ -61,10 +61,7 @@ public class TasksService {
         tasksRepository.deleteById(id);
     }
 
-    public List<TasksDTO> findTasksByDate(){
-        LocalDate dateToday = LocalDate.now();
-        return  tasksRepository.findByDueDate(dateToday).stream()
-                .map(TasksDTO::new)
-                .toList();
+    public long countTasks(){
+        return tasksRepository.countByDueDate(LocalDate.now());
     }
 }

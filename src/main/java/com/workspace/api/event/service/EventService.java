@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -58,5 +59,9 @@ public class EventService {
         event.setLocation(request.location());
         event.setSource(request.source());
         event.setCategory(request.category());
+    }
+
+    public long countEvents() {
+        return eventRepository.countByDueDate(LocalDate.now());
     }
 }
