@@ -1,7 +1,8 @@
 package com.workspace.api.tasks.service;
 
 import com.workspace.api.tasks.domain.Tasks;
-import com.workspace.api.tasks.dto.TasksDTO;
+import com.workspace.api.tasks.dto.TasksRequestDTO;
+import com.workspace.api.tasks.dto.TasksResponseDTO;
 import com.workspace.api.tasks.repository.TasksRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -17,41 +17,41 @@ import java.util.List;
 public class TasksService {
     private final TasksRepository tasksRepository;
 
-    public List<TasksDTO> searchAllTasks(){
+    public List<TasksResponseDTO> searchAllTasks(){
         return tasksRepository.findAll().stream()
-                .map(TasksDTO::new)
+                .map(TasksResponseDTO::new)
                 .toList();
     }
 
-    public TasksDTO insertTask(TasksDTO dto){
+    public TasksResponseDTO insertTask(TasksRequestDTO request){
         Tasks tasks = new Tasks();
-        tasks.setTitle(dto.title());
-        tasks.setPriority(dto.priority());
-        tasks.setDueLabel(dto.dueLabel());
-        tasks.setCompleted(dto.completed() != null && dto.completed());
-        tasks.setNotes(dto.notes());
+        tasks.setTitle(request.title());
+        tasks.setPriority(request.priority());
+        tasks.setDueLabel(request.dueLabel());
+        tasks.setCompleted(request.completed() != null && request.completed());
+        tasks.setNotes(request.notes());
 
         tasks.setTaskCreatedDate(LocalDate.now());
         tasks.setDueDate(LocalDate.now());
 
         Tasks savedTask = tasksRepository.save(tasks);
 
-        return new TasksDTO(savedTask);
+        return new TasksResponseDTO(savedTask);
     }
 
-    public TasksDTO updateTask(Long id, TasksDTO dto){
+    public TasksResponseDTO updateTask(Long id, TasksRequestDTO request){
         Tasks tasks = tasksRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + id));
 
-        if (dto.title() != null) tasks.setTitle(dto.title());
-        if (dto.priority() != null) tasks.setPriority(dto.priority());
-        if (dto.dueLabel() != null) tasks.setDueLabel(dto.dueLabel());
-        if (dto.completed() != null) tasks.setCompleted(dto.completed());
-        if (dto.notes() != null) tasks.setNotes(dto.notes());
+        if (request.title() != null) tasks.setTitle(request.title());
+        if (request.priority() != null) tasks.setPriority(request.priority());
+        if (request.dueLabel() != null) tasks.setDueLabel(request.dueLabel());
+        if (request.completed() != null) tasks.setCompleted(request.completed());
+        if (request.notes() != null) tasks.setNotes(request.notes());
 
         Tasks updatedTask = tasksRepository.save(tasks);
 
-        return new TasksDTO(updatedTask);
+        return new TasksResponseDTO(updatedTask);
     }
 
     public void deleteTask(Long id){

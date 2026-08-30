@@ -1,10 +1,10 @@
 package com.workspace.api.note.service;
 
 import com.workspace.api.note.domain.Note;
+import com.workspace.api.note.dto.NoteRequestDTO;
 import com.workspace.api.note.dto.NoteResponseDTO;
 import com.workspace.api.note.repository.NoteRepository;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,14 +20,14 @@ public class NoteService {
                 .toList();
     }
 
-    public NoteResponseDTO saveNote(NoteResponseDTO dto){
+    public NoteResponseDTO saveNote(NoteRequestDTO request){
         Note note = new Note();
-        note.setTitle(dto.title());
-        note.setDescription(dto.description());
-        note.setEdited(dto.edited());
-        note.setFavourite(dto.favourite());
-        note.setFixed(dto.fixed());
-        note.setFixedAt(dto.fixedAt());
+        note.setTitle(request.title());
+        note.setDescription(request.description());
+        note.setEdited(request.edited());
+        note.setFavourite(request.favourite());
+        note.setFixed(request.fixed());
+        note.setFixedAt(request.fixedAt());
 
         Note noteSaved = noteRepository.save(note);
 

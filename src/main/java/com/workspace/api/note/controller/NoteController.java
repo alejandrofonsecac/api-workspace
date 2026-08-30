@@ -1,8 +1,8 @@
 package com.workspace.api.note.controller;
 
+import com.workspace.api.note.dto.NoteRequestDTO;
 import com.workspace.api.note.dto.NoteResponseDTO;
 import com.workspace.api.note.service.NoteService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +23,8 @@ public class NoteController {
     }
 
     @PostMapping
-    public ResponseEntity<NoteResponseDTO> saveNote(@RequestBody NoteResponseDTO dto){
-        NoteResponseDTO savedNote = noteService.saveNote(dto);
+    public ResponseEntity<NoteResponseDTO> saveNote(@RequestBody NoteRequestDTO request){
+        NoteResponseDTO savedNote = noteService.saveNote(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
     }
 }
