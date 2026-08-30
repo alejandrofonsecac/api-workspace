@@ -1,5 +1,6 @@
 package com.workspace.api.goals.service;
 
+import com.workspace.api.goals.dto.GoalsRequestDTO;
 import com.workspace.api.goals.dto.GoalsResponseDTO;
 import com.workspace.api.goals.entity.Goals;
 import com.workspace.api.goals.repository.GoalsRepository;
@@ -25,14 +26,14 @@ public class GoalsService {
     }
 
     @Transactional
-    public GoalsResponseDTO createGoals(GoalsResponseDTO dto){
+    public GoalsResponseDTO createGoals(GoalsRequestDTO request){
         Goals goal = new Goals();
-        goal.setGoalName(dto.name());
-        goal.setExpectedTarget(dto.expectedTarget());
-        goal.setPriority(dto.priority());
-        goal.setCategory(dto.category());
-        Habit habit = habitRepository.findById(dto.habitId())
-                .orElseThrow(() -> new IllegalArgumentException("Habito nao encontrado: " + dto.habitId()));
+        goal.setGoalName(request.name());
+        goal.setExpectedTarget(request.expectedTarget());
+        goal.setPriority(request.priority());
+        goal.setCategory(request.category());
+        Habit habit = habitRepository.findById(request.habitId())
+                .orElseThrow(() -> new IllegalArgumentException("Habito nao encontrado: " + request.habitId()));
         goal.setHabit(habit);
 
         Goals saveGoal = goalsRepository.save(goal);

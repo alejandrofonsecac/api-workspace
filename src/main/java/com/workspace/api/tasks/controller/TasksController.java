@@ -1,12 +1,12 @@
 package com.workspace.api.tasks.controller;
 
-import com.workspace.api.tasks.dto.TasksDTO;
+import com.workspace.api.tasks.dto.TasksRequestDTO;
+import com.workspace.api.tasks.dto.TasksResponseDTO;
 import com.workspace.api.tasks.service.TasksService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @AllArgsConstructor
@@ -17,7 +17,7 @@ public class TasksController {
     private TasksService tasksService;
 
     @GetMapping("/getTask")
-    public List<TasksDTO> getTasks(){
+    public List<TasksResponseDTO> getTasks(){
         return tasksService.searchAllTasks();
     }
 
@@ -27,14 +27,14 @@ public class TasksController {
     }
 
     @PostMapping
-    public ResponseEntity<TasksDTO> saveTask(@RequestBody TasksDTO dto){
-        TasksDTO savedTask = tasksService.insertTask(dto);
+    public ResponseEntity<TasksResponseDTO> saveTask(@RequestBody TasksRequestDTO request){
+        TasksResponseDTO savedTask = tasksService.insertTask(request);
         return ResponseEntity.ok().body(savedTask);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TasksDTO> updateTask(@PathVariable Long id, @RequestBody TasksDTO dto){
-        TasksDTO updatedTask = tasksService.updateTask(id, dto);
+    public ResponseEntity<TasksResponseDTO> updateTask(@PathVariable Long id, @RequestBody TasksRequestDTO request){
+        TasksResponseDTO updatedTask = tasksService.updateTask(id, request);
         return ResponseEntity.ok().body(updatedTask);
     }
 

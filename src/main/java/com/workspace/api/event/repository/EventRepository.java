@@ -10,6 +10,5 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllByOrderByDateAscStartTimeAsc();
-    long countByDueDate(LocalDate date);
-}
+    long countByDate(LocalDate date);
 }

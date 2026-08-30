@@ -1,5 +1,6 @@
 package com.workspace.api.habit.controller;
 
+import com.workspace.api.habit.dto.HabitRequestDTO;
 import com.workspace.api.habit.dto.HabitResponseDTO;
 import com.workspace.api.habit.service.HabitService;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,8 @@ public class HabitController {
     public final HabitService habitService;
 
     @PostMapping
-    public ResponseEntity<HabitResponseDTO> createHabit(@RequestBody HabitResponseDTO dto){
-        HabitResponseDTO createdHabit = habitService.createHabit(dto);
+    public ResponseEntity<HabitResponseDTO> createHabit(@RequestBody HabitRequestDTO request){
+        HabitResponseDTO createdHabit = habitService.createHabit(request);
         return  ResponseEntity.status(HttpStatus.CREATED).body(createdHabit);
     }
 

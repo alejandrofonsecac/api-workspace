@@ -62,6 +62,6 @@ public class EventService {
     }
 
     public long countEvents() {
-        return eventRepository.countByDueDate(LocalDate.now());
+        return eventRepository.countByDate(LocalDate.now());
     }
 }

@@ -1,5 +1,6 @@
 package com.workspace.api.goals.controller;
 
+import com.workspace.api.goals.dto.GoalsRequestDTO;
 import com.workspace.api.goals.dto.GoalsResponseDTO;
 import com.workspace.api.goals.service.GoalsService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ public class GoalsController {
     }
 
     @PostMapping
-    public ResponseEntity<GoalsResponseDTO> createGoal(@RequestBody GoalsResponseDTO dto){
-        GoalsResponseDTO goal = goalsService.createGoals(dto);
+    public ResponseEntity<GoalsResponseDTO> createGoal(@RequestBody GoalsRequestDTO request){
+        GoalsResponseDTO goal = goalsService.createGoals(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(goal);
     }
 }
