@@ -1,4 +1,4 @@
-package com.workspace.api.tasks.domain;
+package com.workspace.api.schedule.tasks.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
