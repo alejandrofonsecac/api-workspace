@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidEventTimeRange {
-    String message() default "endTime must be after startTime";
+    String message() default "Invalid time slot. Use one full-hour block between 08:00 and 20:00, such as 08:00-09:00.";
 
     Class<?>[] groups() default {};
 

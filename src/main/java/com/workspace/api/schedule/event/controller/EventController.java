@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@RestController("scheduleEventController")
 @RequestMapping("/event")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")

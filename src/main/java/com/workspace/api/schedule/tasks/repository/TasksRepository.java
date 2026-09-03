@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
-@Repository
+@Repository("scheduleTasksRepository")
 public interface TasksRepository extends JpaRepository<Tasks, Long> {
     List<Tasks> findByTaskCreatedDate(LocalDate date);
     List<Tasks> findByDueDate(LocalDate date);

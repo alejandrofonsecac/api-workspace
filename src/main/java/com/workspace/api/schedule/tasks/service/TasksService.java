@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.List;
 
-@Service
+@Service("scheduleTasksService")
 @RequiredArgsConstructor
 public class TasksService {
     private final TasksRepository tasksRepository;

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @AllArgsConstructor
-@RestController
-@RequestMapping("tasks")
+@RestController("scheduleTasksController")
+@RequestMapping("/schedule/tasks")
 @CrossOrigin(origins = "http://localhost:4200")
 public class TasksController {
     private TasksService tasksService;

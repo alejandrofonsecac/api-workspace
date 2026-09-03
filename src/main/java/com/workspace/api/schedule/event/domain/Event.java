@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalTime;
 
 @Data
-@Entity
+@Entity(name = "ScheduleEvent")
 @Table(name = "tb_event")
 public class Event {
     @Id

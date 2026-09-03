@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
+@Service("scheduleEventService")
 @RequiredArgsConstructor
 public class EventService {
     private final EventRepository eventRepository;
