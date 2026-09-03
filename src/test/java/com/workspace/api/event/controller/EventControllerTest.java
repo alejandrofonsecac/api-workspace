@@ -6,7 +6,12 @@ import com.workspace.api.event.domain.EventSource;
 import com.workspace.api.event.dto.EventRequestDTO;
 import com.workspace.api.event.dto.EventResponseDTO;
 import com.workspace.api.event.service.EventService;
+import com.workspace.api.planner.controller.PlannerExceptionHandler;
+import com.workspace.api.planner.exception.OccupiedPlannerSlotException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -19,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EventController.class)
-@Import(CorsConfig.class)
+@Import({CorsConfig.class, PlannerExceptionHandler.class})
 class EventControllerTest {
 
     private static final String VALID_EVENT_JSON = """
@@ -78,7 +84,7 @@ class EventControllerTest {
         EventResponseDTO created = event(10L, "Alignment meeting", LocalDate.of(2026, 8, 24), LocalTime.of(9, 0));
         given(eventService.create(any(EventRequestDTO.class))).willReturn(created);
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/planner/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_EVENT_JSON))
                 .andExpect(status().isCreated())
@@ -94,7 +100,7 @@ class EventControllerTest {
         EventResponseDTO updated = event(10L, "Updated meeting", LocalDate.of(2026, 8, 24), LocalTime.of(9, 0));
         given(eventService.update(eq(10L), any(EventRequestDTO.class))).willReturn(updated);
 
-        mockMvc.perform(put("/events/{id}", 10)
+        mockMvc.perform(put("/planner/events/{id}", 10)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_EVENT_JSON.replace("Alignment meeting", "Updated meeting")))
                 .andExpect(status().isOk())
@@ -104,7 +110,7 @@ class EventControllerTest {
 
     @Test
     void deleteEventReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/events/{id}", 10))
+        mockMvc.perform(delete("/planner/events/{id}", 10))
                 .andExpect(status().isNoContent());
 
         verify(eventService).delete(10L);
@@ -115,7 +121,7 @@ class EventControllerTest {
         given(eventService.update(eq(999L), any(EventRequestDTO.class)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found: 999"));
 
-        mockMvc.perform(put("/events/{id}", 999)
+        mockMvc.perform(put("/planner/events/{id}", 999)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_EVENT_JSON))
                 .andExpect(status().isNotFound());
@@ -127,12 +133,47 @@ class EventControllerTest {
                 .replace("\"startTime\": \"09:00\"", "\"startTime\": \"10:00\"")
                 .replace("\"endTime\": \"10:00\"", "\"endTime\": \"09:00\"");
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/planner/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidTimes))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("full-hour block")));
 
         verifyNoInteractions(eventService);
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidPlannerSlots")
+    void rejectsPlannerSlotsOutsideTheDailySchedule(String eventJson) throws Exception {
+        mockMvc.perform(post("/planner/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventJson))
+                .andExpect(status().isUnprocessableContent());
+
+        verifyNoInteractions(eventService);
+    }
+
+    @Test
+    void rejectsADateOutsideTheExpectedFormat() throws Exception {
+        mockMvc.perform(post("/planner/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_EVENT_JSON.replace("2026-08-24", "24/08/2026")))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("date must use")));
+
+        verifyNoInteractions(eventService);
+    }
+
+    @Test
+    void rejectsAnOccupiedPlannerSlotWithConflict() throws Exception {
+        given(eventService.create(any(EventRequestDTO.class)))
+                .willThrow(new OccupiedPlannerSlotException("This time slot is already occupied for the selected date."));
+
+        mockMvc.perform(post("/planner/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_EVENT_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("This time slot is already occupied for the selected date."));
     }
 
     @Test
@@ -157,6 +198,19 @@ class EventControllerTest {
                 null,
                 EventSource.internal,
                 EventCategory.work
+        );
+    }
+
+    private static Stream<Arguments> invalidPlannerSlots() {
+        return Stream.of(
+                Arguments.of(VALID_EVENT_JSON
+                        .replace("\"startTime\": \"09:00\"", "\"startTime\": \"07:00\"")
+                        .replace("\"endTime\": \"10:00\"", "\"endTime\": \"08:00\"")),
+                Arguments.of(VALID_EVENT_JSON
+                        .replace("\"startTime\": \"09:00\"", "\"startTime\": \"09:30\"")
+                        .replace("\"endTime\": \"10:00\"", "\"endTime\": \"10:30\"")),
+                Arguments.of(VALID_EVENT_JSON
+                        .replace("\"endTime\": \"10:00\"", "\"endTime\": \"11:00\""))
         );
     }
 }
