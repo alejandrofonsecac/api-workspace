@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("habit")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:4200")
 public class HabitController {
     public final HabitService habitService;
 
