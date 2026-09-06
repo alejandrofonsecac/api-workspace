@@ -6,6 +6,7 @@ import org.springframework.web.client.RestClient;
 
 @Configuration
 public class RestClientConfig {
+    //Este RestClient e para configurar a chamada da API de weather em HOME
 
     @Bean
     RestClient.Builder restClientBuilder() {
