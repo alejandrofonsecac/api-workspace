@@ -22,9 +22,25 @@ public class GoalsController {
         return goalsService.getAllGoals();
     }
 
+    @GetMapping("/{id}")
+    public GoalsResponseDTO getGoalById(@PathVariable Integer id) {
+        return goalsService.getGoalById(id);
+    }
+
     @PostMapping
     public ResponseEntity<GoalsResponseDTO> createGoal(@RequestBody GoalsRequestDTO request){
         GoalsResponseDTO goal = goalsService.createGoals(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(goal);
+    }
+
+    @PutMapping("/{id}")
+    public GoalsResponseDTO updateGoal(@PathVariable Integer id, @RequestBody GoalsRequestDTO request) {
+        return goalsService.updateGoal(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGoal(@PathVariable Integer id) {
+        goalsService.deleteGoal(id);
+        return ResponseEntity.noContent().build();
     }
 }
