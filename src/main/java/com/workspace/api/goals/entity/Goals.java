@@ -1,7 +1,6 @@
 package com.workspace.api.goals.entity;
 
-import com.workspace.api.habit.entity.Category;
-import com.workspace.api.habit.entity.Habit;
+import com.workspace.api.util.domain.Category;
 import com.workspace.api.util.domain.Priority;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -36,7 +35,4 @@ public class Goals {
     @Column(columnDefinition = "integer default 0")
     private int deferredCount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "habit_id")
-    private Habit habit;
 }

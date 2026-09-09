@@ -5,7 +5,7 @@ import com.workspace.api.goals.dto.GoalsResponseDTO;
 import com.workspace.api.goals.dto.GoalsBoardDTO;
 import com.workspace.api.goals.dto.GoalFocusDTO;
 import com.workspace.api.goals.entity.GoalStatus;
-import com.workspace.api.habit.entity.Category;
+import com.workspace.api.util.domain.Category;
 import com.workspace.api.goals.service.GoalsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

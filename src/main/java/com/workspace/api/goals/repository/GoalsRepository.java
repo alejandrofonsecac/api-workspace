@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GoalsRepository extends JpaRepository<Goals, Integer> {
-    @EntityGraph(attributePaths = "habit")
     List<Goals> findByWeekIdOrderByIdAsc(String weekId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -17,5 +16,5 @@ public interface GoalsRepository extends JpaRepository<Goals, Integer> {
 
     @Modifying
     @Query("update Goals g set g.weekId = :week where g.weekId is null")
-    int assignLegacyWeek(@Param("week") String week);
+    void assignLegacyWeek(@Param("week") String week);
 }

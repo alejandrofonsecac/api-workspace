@@ -3,9 +3,7 @@ package com.workspace.api.goals.service;
 import com.workspace.api.goals.dto.*;
 import com.workspace.api.goals.entity.*;
 import com.workspace.api.goals.repository.*;
-import com.workspace.api.habit.entity.Category;
-import com.workspace.api.habit.entity.Habit;
-import com.workspace.api.habit.repository.HabitRepository;
+import com.workspace.api.util.domain.Category;
 import com.workspace.api.util.domain.Priority;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +20,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GoalsService {
     private final GoalsRepository goalsRepository;
-    private final HabitRepository habitRepository;
     private final GoalFocusRepository focusRepository;
     private final Clock clock;
 
@@ -38,30 +35,41 @@ public class GoalsService {
         String current = currentWeek();
         String selected = weekId == null ? current : weekId;
         LocalDate start = GoalWeeks.start(selected);
+
         List<GoalsResponseDTO> weekGoals = goalsRepository.findByWeekIdOrderByIdAsc(selected)
-                .stream().map(this::response).toList();
-        int completed = (int) weekGoals.stream().filter(goal -> goal.status() == GoalStatus.COMPLETED).count();
+                .stream()
+                .map(this::response)
+                .toList();
+
+        int completed = (int) weekGoals.stream()
+                .filter(goal -> goal.status() == GoalStatus.COMPLETED).count();
+
         List<GoalsResponseDTO> filtered = weekGoals.stream()
                 .filter(goal -> category == null || goal.category() == category)
-                .filter(goal -> status == null || goal.status() == status).toList();
+                .filter(goal -> status == null || goal.status() == status)
+                .toList();
+
         GoalFocusDTO focus = focusRepository.findById(selected)
                 .map(value -> new GoalFocusDTO(value.getFocus(), value.getMessage())).orElse(null);
+
         var week = new GoalsBoardDTO.Week(selected, GoalWeeks.id(start.minusWeeks(1)),
                 GoalWeeks.id(start.plusWeeks(1)), current, start, start.plusDays(6), selected.equals(current));
-        var defaults = new GoalsRequestDTO("", "", Priority.NORMAL, Category.WORK, null, selected);
+
+        var defaults = new GoalsRequestDTO("", "", Priority.NORMAL, Category.WORK, selected);
+
         var priorities = Arrays.stream(Priority.values()).map(value -> new GoalsBoardDTO.Option(value.name(),
                 switch (value) { case LOW -> "Baixa"; case NORMAL -> "Média"; case HIGH -> "Alta"; })).toList();
+
         var categories = Arrays.stream(Category.values()).map(value -> new GoalsBoardDTO.Option(value.name(),
                 switch (value) {
                     case WORK -> "Trabalho"; case STUDY -> "Estudo"; case HEALTH -> "Saúde";
                     case MIND -> "Mente"; case WELLBEING -> "Bem-estar";
                     case PERSONAL -> "Pessoal"; case PROJECT -> "Projetos";
                 })).toList();
-        var habits = habitRepository.findAll().stream()
-                .map(habit -> new GoalsBoardDTO.HabitOption(habit.getId(), habit.getName())).toList();
+
         return new GoalsBoardDTO(week, filtered,
                 new GoalsBoardDTO.Summary(completed, weekGoals.size(), percentage(completed, weekGoals.size())),
-                focus, defaults, new GoalsBoardDTO.Options(priorities, categories, habits));
+                focus, defaults, new GoalsBoardDTO.Options(priorities, categories));
     }
 
     @Transactional
@@ -125,13 +133,10 @@ public class GoalsService {
     private void applyRequest(Goals goal, GoalsRequestDTO request) {
         if (goal.getWeekId() == null) goal.setWeekId(currentWeek());
         GoalWeeks.start(goal.getWeekId());
-        Habit habit = request.habitId() == null ? null : habitRepository.findById(request.habitId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + request.habitId()));
         goal.setGoalName(request.name().trim());
         goal.setExpectedTarget(request.expectedTarget().trim());
         goal.setPriority(request.priority());
         goal.setCategory(request.category());
-        goal.setHabit(habit);
     }
 
     private GoalsResponseDTO response(Goals goal) {
@@ -140,10 +145,9 @@ public class GoalsService {
         LocalDate start = GoalWeeks.start(weekId == null ? currentWeek() : weekId);
         GoalStatus status = completed ? GoalStatus.COMPLETED
                 : start.isAfter(LocalDate.now(clock)) ? GoalStatus.PLANNED : GoalStatus.IN_PROGRESS;
-        Habit habit = goal.getHabit();
         return new GoalsResponseDTO(goal.getId(), goal.getGoalName(), goal.getExpectedTarget(),
-                goal.getPriority(), goal.getCategory(), habit == null ? null : habit.getId(), weekId,
-                habit == null ? null : habit.getName(), status, goal.getCreatedAt(), goal.getCompletedAt(),
+                goal.getPriority(), goal.getCategory(), weekId,
+                status, goal.getCreatedAt(), goal.getCompletedAt(),
                 goal.getDeferredCount(), !completed, !completed);
     }
 
