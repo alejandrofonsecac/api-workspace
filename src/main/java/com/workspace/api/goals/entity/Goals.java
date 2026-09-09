@@ -5,6 +5,7 @@ import com.workspace.api.habit.entity.Habit;
 import com.workspace.api.util.domain.Priority;
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.Instant;
 
 @Table(name = "tb_goals")
 @Entity
@@ -13,16 +14,29 @@ public class Goals {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @Column(nullable = false)
     private String goalName;
+    @Column(nullable = false)
     private String expectedTarget;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Category category;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "habit_id", nullable = false)
+    @Column(length = 8)
+    private String weekId;
+
+    private Instant createdAt;
+    private Instant completedAt;
+
+    @Column(columnDefinition = "integer default 0")
+    private int deferredCount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habit_id")
     private Habit habit;
 }

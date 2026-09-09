@@ -2,7 +2,12 @@ package com.workspace.api.goals.controller;
 
 import com.workspace.api.goals.dto.GoalsRequestDTO;
 import com.workspace.api.goals.dto.GoalsResponseDTO;
+import com.workspace.api.goals.dto.GoalsBoardDTO;
+import com.workspace.api.goals.dto.GoalFocusDTO;
+import com.workspace.api.goals.entity.GoalStatus;
+import com.workspace.api.habit.entity.Category;
 import com.workspace.api.goals.service.GoalsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +22,24 @@ import java.util.List;
 public class GoalsController {
     private final GoalsService goalsService;
 
+    @GetMapping("/board")
+    public GoalsBoardDTO board(@RequestParam(required = false) String weekId,
+                               @RequestParam(required = false) Category category,
+                               @RequestParam(required = false) GoalStatus status) {
+        return goalsService.board(weekId, category, status);
+    }
+
+    @PostMapping("/{id}/complete")
+    public GoalsResponseDTO complete(@PathVariable Integer id) { return goalsService.complete(id); }
+
+    @PostMapping("/{id}/defer")
+    public GoalsResponseDTO defer(@PathVariable Integer id) { return goalsService.defer(id); }
+
+    @PutMapping("/focus/{weekId}")
+    public GoalFocusDTO saveFocus(@PathVariable String weekId, @Valid @RequestBody GoalFocusDTO request) {
+        return goalsService.saveFocus(weekId, request);
+    }
+
     @GetMapping
     public List<GoalsResponseDTO> getAllGoals(){
         return goalsService.getAllGoals();
@@ -28,13 +51,13 @@ public class GoalsController {
     }
 
     @PostMapping
-    public ResponseEntity<GoalsResponseDTO> createGoal(@RequestBody GoalsRequestDTO request){
+    public ResponseEntity<GoalsResponseDTO> createGoal(@Valid @RequestBody GoalsRequestDTO request){
         GoalsResponseDTO goal = goalsService.createGoals(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(goal);
     }
 
     @PutMapping("/{id}")
-    public GoalsResponseDTO updateGoal(@PathVariable Integer id, @RequestBody GoalsRequestDTO request) {
+    public GoalsResponseDTO updateGoal(@PathVariable Integer id, @Valid @RequestBody GoalsRequestDTO request) {
         return goalsService.updateGoal(id, request);
     }
 
