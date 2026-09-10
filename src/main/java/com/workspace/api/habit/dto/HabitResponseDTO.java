@@ -1,9 +1,10 @@
 package com.workspace.api.habit.dto;
 
-import com.workspace.api.habit.entity.Category;
+import com.workspace.api.util.domain.Category;
 import com.workspace.api.habit.entity.Habit;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record HabitResponseDTO (
         Integer id,
@@ -12,7 +13,9 @@ public record HabitResponseDTO (
         Boolean frequencyEveryDay,
         LocalDate localDate,
         String objective,
-        String observation) {
+        String observation,
+        List<LocalDate> completedDates) {
+
     public HabitResponseDTO(Habit habit) {
         this(
                 habit.getId(),
@@ -21,7 +24,8 @@ public record HabitResponseDTO (
                 habit.getFrequencyEveryDay(),
                 habit.getLocalDate(),
                 habit.getObjective(),
-                habit.getObservation()
+                habit.getObservation(),
+                habit.getCompletedDates().stream().sorted().toList()
         );
     }
 }

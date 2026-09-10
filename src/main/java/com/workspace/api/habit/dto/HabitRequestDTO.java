@@ -1,6 +1,6 @@
 package com.workspace.api.habit.dto;
 
-import com.workspace.api.habit.entity.Category;
+import com.workspace.api.util.domain.Category;
 
 import java.time.LocalDate;
 

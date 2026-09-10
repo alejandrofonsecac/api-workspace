@@ -2,18 +2,25 @@ package com.workspace.api.habit.service;
 
 import com.workspace.api.habit.dto.HabitRequestDTO;
 import com.workspace.api.habit.dto.HabitResponseDTO;
+import com.workspace.api.habit.dto.PlannerHabitDTO;
 import com.workspace.api.habit.entity.Habit;
 import com.workspace.api.habit.repository.HabitRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import java.time.LocalDate;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class HabitService {
     private HabitRepository habitRepository;
 
+    @Transactional
     public HabitResponseDTO createHabit(HabitRequestDTO request){
         Habit habit = new Habit();
         habit.setName(request.name());
@@ -31,6 +38,24 @@ public class HabitService {
     public List<HabitResponseDTO> findAllHabits(){
         return habitRepository.findAll().stream()
                 .map(HabitResponseDTO::new)
+                .toList();
+    }
+
+    @Transactional
+    public HabitResponseDTO toggleCompletion(Integer id, LocalDate date) {
+        Habit habit = habitRepository.findLockedById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + id));
+
+        if (!habit.getCompletedDates().remove(date)) {
+            habit.getCompletedDates().add(date);
+        }
+
+        return new HabitResponseDTO(habit);
+    }
+
+    public List<PlannerHabitDTO> plannerHabits(LocalDate date) {
+        return habitRepository.findAll().stream()
+                .map(habit -> new PlannerHabitDTO(habit.getId(), habit.getName(), habit.getCompletedDates().contains(date)))
                 .toList();
     }
 }
