@@ -12,7 +12,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/notes")
+@RequestMapping("notes")
 @CrossOrigin(origins = "http://localhost:4200")
 public class NoteController {
     private final NoteService noteService;
@@ -26,5 +26,11 @@ public class NoteController {
     public ResponseEntity<NoteResponseDTO> saveNote(@RequestBody NoteRequestDTO request){
         NoteResponseDTO savedNote = noteService.saveNote(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNote(@PathVariable String id){
+        noteService.deleteNote(id);
+        return ResponseEntity.noContent().build();
     }
 }

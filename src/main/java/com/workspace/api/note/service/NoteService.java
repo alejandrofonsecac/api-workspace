@@ -5,7 +5,10 @@ import com.workspace.api.note.dto.NoteRequestDTO;
 import com.workspace.api.note.dto.NoteResponseDTO;
 import com.workspace.api.note.repository.NoteRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -32,5 +35,12 @@ public class NoteService {
         Note noteSaved = noteRepository.save(note);
 
         return new NoteResponseDTO(noteSaved);
+    }
+
+    @Transactional
+    public void deleteNote(String id){
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found: " + id));
+        noteRepository.delete(note);
     }
 }
