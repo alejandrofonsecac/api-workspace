@@ -1,7 +1,10 @@
 .git
 .idea
+.vscode
 .env
 .env.*
 target
 docs
 *.log
+*.iml
+README.md
