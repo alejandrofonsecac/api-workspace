@@ -11,7 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @RestController("scheduleTasksController")
 @RequestMapping("/schedule/tasks")
-@CrossOrigin(origins = "http://localhost:4200")
 public class TasksController {
     private TasksService tasksService;
 

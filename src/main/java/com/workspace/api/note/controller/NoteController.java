@@ -13,7 +13,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("notes")
-@CrossOrigin(origins = "http://localhost:4200")
 public class NoteController {
     private final NoteService noteService;
 
