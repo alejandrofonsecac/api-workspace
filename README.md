@@ -3,6 +3,29 @@
 A branch `production` prepara o backend Java 21 para hospedagem com Docker.
 Frontend: https://plannerfy-production.jfonsecacorrea08.chatgpt.site
 
+## Render
+
+O arquivo `render.yaml` define um Web Service Docker na branch `production`,
+com o perfil Spring `production`, CORS para o frontend e health check configurados.
+Ele usa o plano `free`, sem criar outro banco de dados. Deploys posteriores são
+manuais (`autoDeployTrigger: off`). A criação do arquivo não publica a aplicação.
+
+Depois de enviar a branch ao GitHub:
+
+1. No [painel do Render](https://dashboard.render.com), escolha **New > Blueprint**.
+2. Conecte `alejandrofonsecac/api-workspace` e selecione a branch `production`.
+3. Use `render.yaml` e preencha `API_URL`, `API_USER` e `API_PASSWORD` com as
+   credenciais do PostgreSQL que o serviço deve acessar. `API_URL` precisa ter o
+   formato `jdbc:postgresql://HOST:5432/DATABASE?sslmode=require`.
+4. Crie o serviço e aguarde o deploy ficar **Live**. Copie a URL HTTPS exibida pelo
+   Render e confirme `/actuator/health` antes de configurar o frontend.
+
+O plano gratuito pode suspender o serviço por inatividade; consulte os
+[limites do Render Free](https://render.com/docs/free). Para disponibilidade
+contínua, escolha um plano adequado no painel.
+
+Referência: [Render Blueprints](https://render.com/docs/blueprint-spec).
+
 ## Publicação
 
 1. Conecte este repositório à hospedagem do backend, selecionando a branch `production`
