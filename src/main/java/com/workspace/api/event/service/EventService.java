@@ -1,5 +1,6 @@
 package com.workspace.api.event.service;
 
+import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.event.domain.Event;
 import com.workspace.api.event.dto.EventRequestDTO;
 import com.workspace.api.event.dto.EventResponseDTO;
@@ -23,10 +24,11 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class EventService {
     private final EventRepository eventRepository;
+    private final CurrentUser currentUser;
 
     @Transactional(readOnly = true)
     public List<EventResponseDTO> findAll() {
-        return eventRepository.findAllByOrderByDateAscStartTimeAsc().stream()
+        return eventRepository.findByUserIdOrderByDateAscStartTimeAsc(currentUser.id()).stream()
                 .map(EventResponseDTO::new)
                 .toList();
     }
@@ -37,6 +39,7 @@ public class EventService {
         ensureTimeSlotIsAvailable(request.date(), request.startTime(), request.endTime(), null);
 
         Event event = new Event();
+        event.setUserId(currentUser.id());
         applyRequest(event, request);
         return new EventResponseDTO(eventRepository.save(event));
     }
@@ -52,7 +55,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public PlannerAvailabilityResponseDTO getAvailability(LocalDate date) {
-        List<Event> events = eventRepository.findByDateOrderByStartTimeAsc(date);
+        List<Event> events = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), date);
         List<PlannerSlotDTO> slots = IntStream.range(8, 20)
                 .mapToObj(hour -> buildSlot(events, LocalTime.of(hour, 0)))
                 .toList();
@@ -75,7 +78,7 @@ public class EventService {
     }
 
     private Event findEntityById(Long id) {
-        return eventRepository.findById(id)
+        return eventRepository.findByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found: " + id));
     }
 
@@ -91,7 +94,7 @@ public class EventService {
     }
 
     public long countEvents() {
-        return eventRepository.countByDate(LocalDate.now());
+        return eventRepository.countByUserIdAndDate(currentUser.id(), LocalDate.now());
     }
 
     private void validateTimeSlot(LocalTime startTime, LocalTime endTime) {
@@ -111,9 +114,9 @@ public class EventService {
     private void ensureTimeSlotIsAvailable(
             LocalDate date, LocalTime startTime, LocalTime endTime, Long eventId) {
         boolean occupied = eventId == null
-                ? eventRepository.existsByDateAndStartTimeLessThanAndEndTimeGreaterThan(date, endTime, startTime)
-                : eventRepository.existsByDateAndStartTimeLessThanAndEndTimeGreaterThanAndIdNot(
-                        date, endTime, startTime, eventId);
+                ? eventRepository.existsByUserIdAndDateAndStartTimeLessThanAndEndTimeGreaterThan(currentUser.id(), date, endTime, startTime)
+                : eventRepository.existsByUserIdAndDateAndStartTimeLessThanAndEndTimeGreaterThanAndIdNot(
+                        currentUser.id(), date, endTime, startTime, eventId);
 
         if (occupied) {
             throw new OccupiedPlannerSlotException(

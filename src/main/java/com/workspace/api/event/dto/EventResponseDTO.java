@@ -10,6 +10,7 @@ import java.time.LocalTime;
 
 public record EventResponseDTO(
         Long id,
+        String userId,
         String title,
         @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date,
         @JsonFormat(pattern = "HH:mm") LocalTime startTime,
@@ -22,6 +23,7 @@ public record EventResponseDTO(
     public EventResponseDTO(Event event) {
         this(
                 event.getId(),
+                event.getUserId(),
                 event.getTitle(),
                 event.getDate(),
                 event.getStartTime(),

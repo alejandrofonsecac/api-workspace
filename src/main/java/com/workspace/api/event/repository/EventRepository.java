@@ -1,5 +1,6 @@
 package com.workspace.api.event.repository;
 
+import java.util.Optional;
 import com.workspace.api.event.domain.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -10,13 +11,15 @@ import java.util.List;
 
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
-    List<Event> findAllByOrderByDateAscStartTimeAsc();
-    List<Event> findByDateOrderByStartTimeAsc(LocalDate date);
+    List<Event> findAllByUserId(String userId);
+    Optional<Event> findByIdAndUserId(Long id, String userId);
+    List<Event> findByUserIdOrderByDateAscStartTimeAsc(String userId);
+    List<Event> findByUserIdAndDateOrderByStartTimeAsc(String userId, LocalDate date);
 
-    boolean existsByDateAndStartTimeLessThanAndEndTimeGreaterThan(
-            LocalDate date, LocalTime endTime, LocalTime startTime);
+    boolean existsByUserIdAndDateAndStartTimeLessThanAndEndTimeGreaterThan(
+            String userId, LocalDate date, LocalTime endTime, LocalTime startTime);
 
-    boolean existsByDateAndStartTimeLessThanAndEndTimeGreaterThanAndIdNot(
-            LocalDate date, LocalTime endTime, LocalTime startTime, Long id);
-    long countByDate(LocalDate date);
+    boolean existsByUserIdAndDateAndStartTimeLessThanAndEndTimeGreaterThanAndIdNot(
+            String userId, LocalDate date, LocalTime endTime, LocalTime startTime, Long id);
+    long countByUserIdAndDate(String userId, LocalDate date);
 }
