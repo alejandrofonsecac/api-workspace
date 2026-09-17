@@ -10,7 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice
+@RestControllerAdvice(assignableTypes = {PlannerController.class, com.workspace.api.event.controller.EventController.class})
 public class PlannerExceptionHandler {
     @ExceptionHandler(InvalidPlannerSlotException.class)
     public ResponseEntity<PlannerErrorResponse> handleInvalidSlot(InvalidPlannerSlotException exception) {
