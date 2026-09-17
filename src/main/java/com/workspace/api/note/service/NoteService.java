@@ -1,5 +1,6 @@
 package com.workspace.api.note.service;
 
+import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.note.domain.Note;
 import com.workspace.api.note.dto.NoteRequestDTO;
 import com.workspace.api.note.dto.NoteResponseDTO;
@@ -16,15 +17,17 @@ import java.util.List;
 @AllArgsConstructor
 public class NoteService {
     private NoteRepository noteRepository;
+    private final CurrentUser currentUser;
 
     public List<NoteResponseDTO> findAllNotes(){
-        return noteRepository.findAll().stream()
+        return noteRepository.findAllByUserId(currentUser.id()).stream()
                 .map(NoteResponseDTO::new)
                 .toList();
     }
 
     public NoteResponseDTO saveNote(NoteRequestDTO request){
         Note note = new Note();
+        note.setUserId(currentUser.id());
         note.setTitle(request.title());
         note.setDescription(request.description());
         note.setEdited(request.edited());
@@ -39,7 +42,7 @@ public class NoteService {
 
     @Transactional
     public void deleteNote(String id){
-        Note note = noteRepository.findById(id)
+        Note note = noteRepository.findByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found: " + id));
         noteRepository.delete(note);
     }
