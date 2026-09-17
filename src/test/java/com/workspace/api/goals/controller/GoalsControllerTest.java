@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class GoalsControllerTest {
+class GoalsControllerTest extends com.workspace.api.support.AuthenticatedTest {
 
     @Autowired
     private MockMvc mockMvc;

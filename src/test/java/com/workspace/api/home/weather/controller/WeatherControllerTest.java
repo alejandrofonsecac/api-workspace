@@ -17,8 +17,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(WeatherController.class)
-@Import(CorsConfig.class)
+@Import({CorsConfig.class, com.workspace.api.user.security.SecurityConfiguration.class})
+@org.springframework.security.test.context.support.WithMockUser
 class WeatherControllerTest {
+    @MockitoBean com.workspace.api.user.repository.UserRepository users;
+    @MockitoBean org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
     @Autowired
     private MockMvc mockMvc;
 

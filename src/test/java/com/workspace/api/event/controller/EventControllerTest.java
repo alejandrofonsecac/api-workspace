@@ -42,8 +42,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EventController.class)
-@Import({CorsConfig.class, PlannerExceptionHandler.class})
+@Import({CorsConfig.class, PlannerExceptionHandler.class, com.workspace.api.user.security.SecurityConfiguration.class})
+@org.springframework.security.test.context.support.WithMockUser
 class EventControllerTest {
+    @MockitoBean com.workspace.api.user.repository.UserRepository users;
+    @MockitoBean org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
 
     private static final String VALID_EVENT_JSON = """
             {
@@ -190,6 +193,7 @@ class EventControllerTest {
     private EventResponseDTO event(Long id, String title, LocalDate date, LocalTime startTime) {
         return new EventResponseDTO(
                 id,
+                "test-user",
                 title,
                 date,
                 startTime,

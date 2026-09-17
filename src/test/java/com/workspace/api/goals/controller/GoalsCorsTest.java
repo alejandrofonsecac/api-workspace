@@ -21,8 +21,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(GoalsController.class)
-@Import(CorsConfig.class)
+@Import({CorsConfig.class, com.workspace.api.user.security.SecurityConfiguration.class})
+@org.springframework.security.test.context.support.WithMockUser
 class GoalsCorsTest {
+    @MockitoBean com.workspace.api.user.repository.UserRepository users;
+    @MockitoBean org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,6 +53,6 @@ class GoalsCorsTest {
                         .header("Access-Control-Request-Headers", "Content-Type,Authorization"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"))
-                .andExpect(header().string("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS"));
+                .andExpect(header().string("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS"));
     }
 }

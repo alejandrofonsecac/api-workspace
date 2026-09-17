@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@Import(EventService.class)
+@Import({EventService.class, com.workspace.api.user.security.CurrentUser.class})
 @ActiveProfiles("test")
-class PlannerAvailabilityServiceTest {
+class PlannerAvailabilityServiceTest extends com.workspace.api.support.AuthenticatedTest {
     private static final LocalDate DATE = LocalDate.of(2026, 8, 31);
 
     @Autowired
