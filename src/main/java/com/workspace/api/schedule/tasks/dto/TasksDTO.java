@@ -4,6 +4,7 @@ import com.workspace.api.schedule.tasks.domain.Tasks;
 
 public record TasksDTO(
         Long id,
+        String userId,
         String title,
         String priority,
         String dueLabel,
@@ -13,6 +14,7 @@ public record TasksDTO(
     public TasksDTO(Tasks tasks) {
         this(
                 tasks.getId(),
+                tasks.getUserId(),
                 tasks.getTitle(),
                 tasks.getPriority(),
                 tasks.getDueLabel(),

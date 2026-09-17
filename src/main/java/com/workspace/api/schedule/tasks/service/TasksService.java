@@ -1,5 +1,6 @@
 package com.workspace.api.schedule.tasks.service;
 
+import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.schedule.tasks.domain.Tasks;
 import com.workspace.api.schedule.tasks.dto.TasksDTO;
 import com.workspace.api.schedule.tasks.repository.TasksRepository;
@@ -15,15 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TasksService {
     private final TasksRepository tasksRepository;
+    private final CurrentUser currentUser;
 
     public List<TasksDTO> searchAllTasks(){
-        return tasksRepository.findAll().stream()
+        return tasksRepository.findAllByUserId(currentUser.id()).stream()
                 .map(TasksDTO::new)
                 .toList();
     }
 
     public TasksDTO insertTask(TasksDTO dto){
         Tasks tasks = new Tasks();
+        tasks.setUserId(currentUser.id());
         tasks.setTitle(dto.title());
         tasks.setPriority(dto.priority());
         tasks.setDueLabel(dto.dueLabel());
@@ -39,7 +42,7 @@ public class TasksService {
     }
 
     public TasksDTO updateTask(Long id, TasksDTO dto){
-        Tasks tasks = tasksRepository.findById(id)
+        Tasks tasks = tasksRepository.findByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + id));
 
         if (dto.title() != null) tasks.setTitle(dto.title());
@@ -54,13 +57,12 @@ public class TasksService {
     }
 
     public void deleteTask(Long id){
-        if (!tasksRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + id);
-        }
-        tasksRepository.deleteById(id);
+        Tasks task = tasksRepository.findByIdAndUserId(id, currentUser.id())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + id));
+        tasksRepository.delete(task);
     }
 
     public long countTasks(){
-        return tasksRepository.countByDueDate(LocalDate.now());
+        return tasksRepository.countByUserIdAndDueDate(currentUser.id(), LocalDate.now());
     }
 }

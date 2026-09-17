@@ -1,5 +1,6 @@
 package com.workspace.api.schedule.tasks.repository;
 
+import java.util.Optional;
 import com.workspace.api.schedule.tasks.domain.Tasks;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -9,9 +10,11 @@ import java.util.List;
 
 @Repository("scheduleTasksRepository")
 public interface TasksRepository extends JpaRepository<Tasks, Long> {
-    List<Tasks> findByTaskCreatedDate(LocalDate date);
-    List<Tasks> findByDueDate(LocalDate date);
+    List<Tasks> findAllByUserId(String userId);
+    Optional<Tasks> findByIdAndUserId(Long id, String userId);
+    List<Tasks> findByUserIdAndTaskCreatedDate(String userId, LocalDate date);
+    List<Tasks> findByUserIdAndDueDate(String userId, LocalDate date);
 
-    long countByDueDate(LocalDate date);
-    long countByTaskCreatedDate(LocalDate date);
+    long countByUserIdAndDueDate(String userId, LocalDate date);
+    long countByUserIdAndTaskCreatedDate(String userId, LocalDate date);
 }
