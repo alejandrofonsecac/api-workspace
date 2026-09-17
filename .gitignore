@@ -16,7 +16,6 @@ target/
 ### Developer
 .env
 .docs
-src/main/resources/application.yml
 
 ### IntelliJ IDEA ###
 .idea
