@@ -1,5 +1,6 @@
 package com.workspace.api.habit.entity;
 
+import com.workspace.api.user.domain.UserOwnedEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.workspace.api.util.domain.Category;
 import jakarta.persistence.*;
@@ -11,8 +12,9 @@ import java.util.Set;
 
 @Table(name = "tb_habit")
 @Data
+@lombok.EqualsAndHashCode(callSuper = true)
 @Entity
-public class Habit {
+public class Habit extends UserOwnedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

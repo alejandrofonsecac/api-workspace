@@ -1,5 +1,6 @@
 package com.workspace.api.habit.service;
 
+import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.habit.dto.HabitRequestDTO;
 import com.workspace.api.habit.dto.HabitResponseDTO;
 import com.workspace.api.habit.dto.PlannerHabitDTO;
@@ -19,10 +20,12 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class HabitService {
     private HabitRepository habitRepository;
+    private final CurrentUser currentUser;
 
     @Transactional
     public HabitResponseDTO createHabit(HabitRequestDTO request){
         Habit habit = new Habit();
+        habit.setUserId(currentUser.id());
         habit.setName(request.name());
         habit.setCategory(request.category());
         habit.setFrequencyEveryDay(request.frequencyEveryDay());
@@ -36,14 +39,14 @@ public class HabitService {
     }
 
     public List<HabitResponseDTO> findAllHabits(){
-        return habitRepository.findAll().stream()
+        return habitRepository.findAllByUserId(currentUser.id()).stream()
                 .map(HabitResponseDTO::new)
                 .toList();
     }
 
     @Transactional
     public HabitResponseDTO toggleCompletion(Integer id, LocalDate date) {
-        Habit habit = habitRepository.findLockedById(id)
+        Habit habit = habitRepository.findLockedByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + id));
 
         if (!habit.getCompletedDates().remove(date)) {
@@ -54,8 +57,8 @@ public class HabitService {
     }
 
     public List<PlannerHabitDTO> plannerHabits(LocalDate date) {
-        return habitRepository.findAll().stream()
-                .map(habit -> new PlannerHabitDTO(habit.getId(), habit.getName(), habit.getCompletedDates().contains(date)))
+        return habitRepository.findAllByUserId(currentUser.id()).stream()
+                .map(habit -> new PlannerHabitDTO(habit.getId(), habit.getUserId(), habit.getName(), habit.getCompletedDates().contains(date)))
                 .toList();
     }
 }

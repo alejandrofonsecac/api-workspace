@@ -8,6 +8,7 @@ import java.util.List;
 
 public record HabitResponseDTO (
         Integer id,
+        String userId,
         String name,
         Category category,
         Boolean frequencyEveryDay,
@@ -19,6 +20,7 @@ public record HabitResponseDTO (
     public HabitResponseDTO(Habit habit) {
         this(
                 habit.getId(),
+                habit.getUserId(),
                 habit.getName(),
                 habit.getCategory(),
                 habit.getFrequencyEveryDay(),
