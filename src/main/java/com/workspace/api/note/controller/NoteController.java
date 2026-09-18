@@ -27,6 +27,11 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
     }
 
+    @PutMapping("/{id}")
+    public NoteResponseDTO updateNote(@PathVariable String id, @RequestBody NoteRequestDTO request) {
+        return noteService.updateNote(id, request);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable String id){
         noteService.deleteNote(id);

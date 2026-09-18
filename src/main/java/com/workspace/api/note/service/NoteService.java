@@ -18,6 +18,7 @@ import java.util.List;
 public class NoteService {
     private NoteRepository noteRepository;
     private final CurrentUser currentUser;
+    private final java.time.Clock clock;
 
     public List<NoteResponseDTO> findAllNotes(){
         return noteRepository.findAllByUserId(currentUser.id()).stream()
@@ -25,15 +26,17 @@ public class NoteService {
                 .toList();
     }
 
+    @Transactional
     public NoteResponseDTO saveNote(NoteRequestDTO request){
+        requireTitle(request.title());
         Note note = new Note();
         note.setUserId(currentUser.id());
         note.setTitle(request.title());
         note.setDescription(request.description());
-        note.setEdited(request.edited());
-        note.setFavourite(request.favourite());
-        note.setFixed(request.fixed());
-        note.setFixedAt(request.fixedAt());
+        note.setEdited(java.time.LocalDateTime.now(clock));
+        note.setFavourite(Boolean.TRUE.equals(request.favourite()));
+        note.setFixed(Boolean.TRUE.equals(request.fixed()));
+        note.setFixedAt(Boolean.TRUE.equals(request.fixed()) ? java.time.LocalDateTime.now(clock) : null);
 
         Note noteSaved = noteRepository.save(note);
 
@@ -41,9 +44,29 @@ public class NoteService {
     }
 
     @Transactional
+    public NoteResponseDTO updateNote(String id, NoteRequestDTO request) {
+        Note note = noteRepository.findByIdAndUserId(id, currentUser.id())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
+        if (request.title() != null) { requireTitle(request.title()); note.setTitle(request.title().trim()); }
+        if (request.description() != null) note.setDescription(request.description());
+        if (request.favourite() != null) note.setFavourite(request.favourite());
+        if (request.fixed() != null && !request.fixed().equals(note.getFixed())) {
+            note.setFixed(request.fixed());
+            note.setFixedAt(request.fixed() ? java.time.LocalDateTime.now(clock) : null);
+        }
+        note.setEdited(java.time.LocalDateTime.now(clock));
+        return new NoteResponseDTO(noteRepository.save(note));
+    }
+
+    @Transactional
     public void deleteNote(String id){
         Note note = noteRepository.findByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found: " + id));
         noteRepository.delete(note);
+    }
+
+    private void requireTitle(String title) {
+        if (title == null || title.isBlank() || title.length() > 255)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A title of up to 255 characters is required");
     }
 }
