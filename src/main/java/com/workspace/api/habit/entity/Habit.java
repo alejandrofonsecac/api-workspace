@@ -19,6 +19,15 @@ public class Habit extends UserOwnedEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
+    private String icon = "self_improvement";
+    private String frequencyType = "daily";
+    private String status = "active";
+    private java.time.LocalTime time;
+    private LocalDate createdAt;
+    @ElementCollection
+    @CollectionTable(name="tb_habit_weekdays", joinColumns=@JoinColumn(name="habit_id"))
+    @Column(name="day_of_week")
+    private Set<Integer> daysOfWeek = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private Category category;
