@@ -140,7 +140,7 @@ class EventControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidTimes))
                 .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("full-hour block")));
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("increasing interval")));
 
         verifyNoInteractions(eventService);
     }
@@ -208,13 +208,13 @@ class EventControllerTest {
     private static Stream<Arguments> invalidPlannerSlots() {
         return Stream.of(
                 Arguments.of(VALID_EVENT_JSON
-                        .replace("\"startTime\": \"09:00\"", "\"startTime\": \"07:00\"")
-                        .replace("\"endTime\": \"10:00\"", "\"endTime\": \"08:00\"")),
+                        .replace("\"startTime\": \"09:00\"", "\"startTime\": \"10:00\"")
+                        .replace("\"endTime\": \"10:00\"", "\"endTime\": \"09:00\"")),
                 Arguments.of(VALID_EVENT_JSON
-                        .replace("\"startTime\": \"09:00\"", "\"startTime\": \"09:30\"")
+                        .replace("\"startTime\": \"09:00\"", "\"startTime\": \"09:30:01\"")
                         .replace("\"endTime\": \"10:00\"", "\"endTime\": \"10:30\"")),
                 Arguments.of(VALID_EVENT_JSON
-                        .replace("\"endTime\": \"10:00\"", "\"endTime\": \"11:00\""))
+                        .replace("\"endTime\": \"10:00\"", "\"endTime\": \"09:00\""))
         );
     }
 }

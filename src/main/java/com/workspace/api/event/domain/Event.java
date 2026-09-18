@@ -27,6 +27,12 @@ public class Event extends UserOwnedEntity {
     private Long id;
 
     @Column(nullable = false)
+    private String kind = "event";
+
+    @Column(unique = true)
+    private Long scheduledTaskId;
+
+    @Column(nullable = false)
     private String title;
 
     @Column(nullable = false)

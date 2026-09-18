@@ -1,27 +1,30 @@
 package com.workspace.api.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.workspace.api.event.domain.EventCategory;
-import com.workspace.api.event.domain.EventSource;
+import com.workspace.api.event.domain.*;
 import com.workspace.api.event.validation.ValidEventTimeRange;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @ValidEventTimeRange
 public record EventRequestDTO(
-        @NotBlank(message = "title must not be blank") String title,
-        @NotNull(message = "date is required")
-        @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date,
-        @NotNull(message = "startTime is required")
-        @JsonFormat(pattern = "HH:mm") LocalTime startTime,
-        @NotNull(message = "endTime is required")
-        @JsonFormat(pattern = "HH:mm") LocalTime endTime,
-        String description,
-        String location,
-        @NotNull(message = "source is required") EventSource source,
-        @NotNull(message = "category is required") EventCategory category
-) {
+        @NotBlank @Size(max = 255) String title,
+        @NotNull @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date,
+        @NotNull @JsonFormat(pattern = "HH:mm") LocalTime startTime,
+        @NotBlank String endTime,
+        String description, String location,
+        @NotNull EventSource source, @NotNull EventCategory category) {
+
+    public EventRequestDTO(String title,
+                           LocalDate date,
+                           LocalTime startTime,
+                           LocalTime endTime,
+                           String description,
+                           String location,
+                           EventSource source,
+                           EventCategory category) {
+        this(title, date, startTime, endTime == null ? null : EventTimes.endText(endTime), description, location, source, category);
+    }
 }

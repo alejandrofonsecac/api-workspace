@@ -1,140 +1,95 @@
 package com.workspace.api.event.service;
 
 import com.workspace.api.user.security.CurrentUser;
-import com.workspace.api.event.domain.Event;
-import com.workspace.api.event.dto.EventRequestDTO;
-import com.workspace.api.event.dto.EventResponseDTO;
-import com.workspace.api.planner.dto.PlannerAvailabilityResponseDTO;
-import com.workspace.api.planner.dto.PlannerSlotDTO;
-import com.workspace.api.planner.exception.InvalidPlannerSlotException;
-import com.workspace.api.planner.exception.OccupiedPlannerSlotException;
+import com.workspace.api.user.repository.UserRepository;
+import com.workspace.api.event.domain.*;
+import com.workspace.api.event.dto.*;
 import com.workspace.api.event.repository.EventRepository;
+import com.workspace.api.planner.dto.*;
+import com.workspace.api.planner.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
+import java.time.*;
+import java.util.*;
 import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventService {
     private final EventRepository eventRepository;
     private final CurrentUser currentUser;
+    private final UserRepository users;
+    private final Clock clock;
 
-    @Transactional(readOnly = true)
     public List<EventResponseDTO> findAll() {
-        return eventRepository.findByUserIdOrderByDateAscStartTimeAsc(currentUser.id()).stream()
-                .map(EventResponseDTO::new)
-                .toList();
+        return eventRepository.findByUserIdOrderByDateAscStartTimeAsc(currentUser.id()).stream().map(EventResponseDTO::new).toList();
     }
 
     @Transactional
     public EventResponseDTO create(EventRequestDTO request) {
-        validateTimeSlot(request.startTime(), request.endTime());
-        ensureTimeSlotIsAvailable(request.date(), request.startTime(), request.endTime(), null);
-
+        lockCalendar();
+        validate(request, null);
         Event event = new Event();
         event.setUserId(currentUser.id());
-        applyRequest(event, request);
-        return new EventResponseDTO(eventRepository.save(event));
+        apply(event, request);
+        return new EventResponseDTO(eventRepository.saveAndFlush(event));
     }
 
     @Transactional
     public EventResponseDTO update(Long id, EventRequestDTO request) {
-        Event event = findEntityById(id);
-        validateTimeSlot(request.startTime(), request.endTime());
-        ensureTimeSlotIsAvailable(request.date(), request.startTime(), request.endTime(), id);
-        applyRequest(event, request);
-        return new EventResponseDTO(eventRepository.save(event));
-    }
-
-    @Transactional(readOnly = true)
-    public PlannerAvailabilityResponseDTO getAvailability(LocalDate date) {
-        List<Event> events = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), date);
-        List<PlannerSlotDTO> slots = IntStream.range(8, 20)
-                .mapToObj(hour -> buildSlot(events, LocalTime.of(hour, 0)))
-                .toList();
-        int occupiedBlocks = (int) slots.stream().filter(slot -> !slot.available()).count();
-
-        return new PlannerAvailabilityResponseDTO(
-                date,
-                12,
-                occupiedBlocks,
-                12 - occupiedBlocks,
-                12 - occupiedBlocks,
-                slots
-        );
+        lockCalendar();
+        Event event = find(id);
+        validate(request, id);
+        apply(event, request);
+        return new EventResponseDTO(eventRepository.saveAndFlush(event));
     }
 
     @Transactional
     public void delete(Long id) {
-        Event event = findEntityById(id);
-        eventRepository.delete(event);
+        lockCalendar();
+        eventRepository.delete(find(id));
     }
 
-    private Event findEntityById(Long id) {
-        return eventRepository.findByIdAndUserId(id, currentUser.id())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found: " + id));
+    // Serializes writes for this user's calendar, including concurrent empty-slot creations.
+    public void lockCalendar() {
+        users.lockById(currentUser.id()).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
-    private void applyRequest(Event event, EventRequestDTO request) {
-        event.setTitle(request.title());
-        event.setDate(request.date());
-        event.setStartTime(request.startTime());
-        event.setEndTime(request.endTime());
-        event.setDescription(request.description());
-        event.setLocation(request.location());
-        event.setSource(request.source());
-        event.setCategory(request.category());
+    public PlannerAvailabilityResponseDTO getAvailability(LocalDate date) {
+        List<Event> events = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), date);
+        List<PlannerSlotDTO> slots = IntStream.range(0, 24).mapToObj(hour -> {
+            boolean occupied = events.stream().anyMatch(event -> EventTimes.startMinutes(event.getStartTime()) < (hour + 1) * 60
+                    && EventTimes.endMinutes(event.getEndTime()) > hour * 60);
+            return new PlannerSlotDTO(LocalTime.of(hour, 0), LocalTime.of((hour + 1) % 24, 0), !occupied);
+        }).toList();
+        int occupied = (int) slots.stream().filter(slot -> !slot.available()).count();
+        return new PlannerAvailabilityResponseDTO(date, 24, occupied, 24 - occupied, 24 - occupied, slots);
     }
 
-    public long countEvents() {
-        return eventRepository.countByUserIdAndDate(currentUser.id(), LocalDate.now());
+    public long countEvents() { return eventRepository.countByUserIdAndDate(currentUser.id(), LocalDate.now(clock)); }
+
+    private Event find(Long id) {
+        return eventRepository.findByIdAndUserId(id, currentUser.id()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
     }
 
-    private void validateTimeSlot(LocalTime startTime, LocalTime endTime) {
-        if (startTime == null || endTime == null
-                || startTime.getMinute() != 0
-                || startTime.getSecond() != 0
-                || startTime.getNano() != 0
-                || !endTime.equals(startTime.plusHours(1))
-                || startTime.isBefore(LocalTime.of(8, 0))
-                || endTime.isAfter(LocalTime.of(20, 0))) {
-            throw new InvalidPlannerSlotException(
-                    "Invalid time slot. Use one full-hour block between 08:00 and 20:00, such as 08:00-09:00."
-            );
-        }
+    private void validate(EventRequestDTO request, Long ignoredId) {
+        if (!EventTimes.valid(request.startTime(), request.endTime())) throw new InvalidPlannerSlotException("Use an increasing interval between 00:00 and 24:00.");
+        int start = EventTimes.startMinutes(request.startTime());
+        int end = EventTimes.endMinutes(EventTimes.parseEnd(request.endTime()));
+        boolean occupied = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), request.date()).stream()
+                .anyMatch(event -> !Objects.equals(event.getId(), ignoredId)
+                        && EventTimes.startMinutes(event.getStartTime()) < end && EventTimes.endMinutes(event.getEndTime()) > start);
+        if (occupied) throw new OccupiedPlannerSlotException("This time slot is already occupied for the selected date.");
     }
 
-    private void ensureTimeSlotIsAvailable(
-            LocalDate date, LocalTime startTime, LocalTime endTime, Long eventId) {
-        boolean occupied = eventId == null
-                ? eventRepository.existsByUserIdAndDateAndStartTimeLessThanAndEndTimeGreaterThan(currentUser.id(), date, endTime, startTime)
-                : eventRepository.existsByUserIdAndDateAndStartTimeLessThanAndEndTimeGreaterThanAndIdNot(
-                        currentUser.id(), date, endTime, startTime, eventId);
-
-        if (occupied) {
-            throw new OccupiedPlannerSlotException(
-                    "This time slot is already occupied for the selected date."
-            );
-        }
-    }
-
-    private PlannerSlotDTO buildSlot(List<Event> events, LocalTime startTime) {
-        LocalTime endTime = startTime.plusHours(1);
-        boolean occupied = events.stream().
-                anyMatch(event ->
-                event.getStartTime()
-                        .isBefore(endTime)
-                        &&
-                        event.getEndTime()
-                                .isAfter(startTime));
-
-        return new PlannerSlotDTO(startTime, endTime, !occupied);
+    private void apply(Event event, EventRequestDTO request) {
+        event.setTitle(request.title().trim()); event.setDate(request.date());
+        event.setStartTime(request.startTime()); event.setEndTime(EventTimes.parseEnd(request.endTime()));
+        event.setDescription(request.description()); event.setLocation(request.location());
+        event.setSource(request.source()); event.setCategory(request.category());
     }
 }
