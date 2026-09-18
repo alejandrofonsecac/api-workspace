@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Table(name = "tb_tasks")
 @Entity
@@ -30,4 +31,5 @@ public class Tasks extends UserOwnedEntity {
 
     private LocalDate taskCreatedDate;
     private LocalDate dueDate;
+    private LocalTime dueTime;
 }
