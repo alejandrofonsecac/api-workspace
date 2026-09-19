@@ -1,5 +1,6 @@
 package com.workspace.api.goals.service;
 
+import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.goals.dto.*;
 import com.workspace.api.goals.entity.*;
 import com.workspace.api.goals.repository.*;
@@ -20,11 +21,12 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GoalsService {
     private final GoalsRepository goalsRepository;
+    private final CurrentUser currentUser;
     private final GoalFocusRepository focusRepository;
     private final Clock clock;
 
     public List<GoalsResponseDTO> getAllGoals() {
-        return goalsRepository.findAll().stream().map(this::response).toList();
+        return goalsRepository.findAllByUserId(currentUser.id()).stream().map(this::response).toList();
     }
 
     public GoalsResponseDTO getGoalById(Integer id) {
@@ -36,7 +38,7 @@ public class GoalsService {
         String selected = weekId == null ? current : weekId;
         LocalDate start = GoalWeeks.start(selected);
 
-        List<GoalsResponseDTO> weekGoals = goalsRepository.findByWeekIdOrderByIdAsc(selected)
+        List<GoalsResponseDTO> weekGoals = goalsRepository.findByUserIdAndWeekIdOrderByIdAsc(currentUser.id(), selected)
                 .stream()
                 .map(this::response)
                 .toList();
@@ -49,7 +51,7 @@ public class GoalsService {
                 .filter(goal -> status == null || goal.status() == status)
                 .toList();
 
-        GoalFocusDTO focus = focusRepository.findById(selected)
+        GoalFocusDTO focus = focusRepository.findByUserIdAndWeekId(currentUser.id(), selected)
                 .map(value -> new GoalFocusDTO(value.getFocus(), value.getMessage())).orElse(null);
 
         var week = new GoalsBoardDTO.Week(selected, GoalWeeks.id(start.minusWeeks(1)),
@@ -75,6 +77,7 @@ public class GoalsService {
     @Transactional
     public GoalsResponseDTO createGoals(GoalsRequestDTO request) {
         Goals goal = new Goals();
+        goal.setUserId(currentUser.id());
         goal.setCreatedAt(clock.instant());
         goal.setWeekId(request.weekId() == null ? currentWeek() : request.weekId());
         applyRequest(goal, request);
@@ -112,8 +115,9 @@ public class GoalsService {
     @Transactional
     public GoalFocusDTO saveFocus(String weekId, GoalFocusDTO request) {
         GoalWeeks.start(weekId);
-        GoalFocus focus = focusRepository.findById(weekId).orElseGet(GoalFocus::new);
+        GoalFocus focus = focusRepository.findByUserIdAndWeekId(currentUser.id(), weekId).orElseGet(GoalFocus::new);
         focus.setWeekId(weekId);
+        focus.setUserId(currentUser.id());
         focus.setFocus(request.focus().trim());
         focus.setMessage(request.message() == null ? "" : request.message().trim());
         focusRepository.save(focus);
@@ -126,7 +130,7 @@ public class GoalsService {
     }
 
     private Goals findGoal(Integer id, boolean lock) {
-        return (lock ? goalsRepository.findLockedById(id) : goalsRepository.findById(id))
+        return (lock ? goalsRepository.findLockedByIdAndUserId(id, currentUser.id()) : goalsRepository.findByIdAndUserId(id, currentUser.id()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Goal not found: " + id));
     }
 
@@ -145,7 +149,7 @@ public class GoalsService {
         LocalDate start = GoalWeeks.start(weekId == null ? currentWeek() : weekId);
         GoalStatus status = completed ? GoalStatus.COMPLETED
                 : start.isAfter(LocalDate.now(clock)) ? GoalStatus.PLANNED : GoalStatus.IN_PROGRESS;
-        return new GoalsResponseDTO(goal.getId(), goal.getGoalName(), goal.getExpectedTarget(),
+        return new GoalsResponseDTO(goal.getId(), goal.getUserId(), goal.getGoalName(), goal.getExpectedTarget(),
                 goal.getPriority(), goal.getCategory(), weekId,
                 status, goal.getCreatedAt(), goal.getCompletedAt(),
                 goal.getDeferredCount(), !completed, !completed);

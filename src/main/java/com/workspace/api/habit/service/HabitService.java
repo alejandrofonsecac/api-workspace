@@ -1,5 +1,6 @@
 package com.workspace.api.habit.service;
 
+import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.habit.dto.HabitRequestDTO;
 import com.workspace.api.habit.dto.HabitResponseDTO;
 import com.workspace.api.habit.dto.PlannerHabitDTO;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+
+import java.time.Clock;
 import java.time.LocalDate;
 
 import java.util.List;
@@ -19,10 +22,21 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class HabitService {
     private HabitRepository habitRepository;
+    private final CurrentUser currentUser;
+    private final Clock clock;
+    private final HabitMetrics metrics;
 
     @Transactional
-    public HabitResponseDTO createHabit(HabitRequestDTO request){
+    public HabitResponseDTO createHabit(HabitRequestDTO request) {
         Habit habit = new Habit();
+        habit.setUserId(currentUser.id());
+        if (request.name() == null || request.name().isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name is required");
+        habit.setCreatedAt(LocalDate.now(clock));
+        if (Boolean.FALSE.equals(request.frequencyEveryDay()) && request.localDate() != null) {
+            habit.setFrequencyType("custom");
+            habit.getDaysOfWeek().add(request.localDate().getDayOfWeek().getValue());
+        }
         habit.setName(request.name());
         habit.setCategory(request.category());
         habit.setFrequencyEveryDay(request.frequencyEveryDay());
@@ -35,17 +49,19 @@ public class HabitService {
         return new HabitResponseDTO(habitSaved);
     }
 
-    public List<HabitResponseDTO> findAllHabits(){
-        return habitRepository.findAll().stream()
+    public List<HabitResponseDTO> findAllHabits() {
+        return habitRepository.findAllByUserId(currentUser.id()).stream()
                 .map(HabitResponseDTO::new)
                 .toList();
     }
 
     @Transactional
     public HabitResponseDTO toggleCompletion(Integer id, LocalDate date) {
-        Habit habit = habitRepository.findLockedById(id)
+        Habit habit = habitRepository.findLockedByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + id));
 
+        if (date.isAfter(LocalDate.now(clock)) || !metrics.scheduled(habit, date) || !"active".equals(habit.getStatus()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Habit cannot be completed on this date");
         if (!habit.getCompletedDates().remove(date)) {
             habit.getCompletedDates().add(date);
         }
@@ -54,8 +70,9 @@ public class HabitService {
     }
 
     public List<PlannerHabitDTO> plannerHabits(LocalDate date) {
-        return habitRepository.findAll().stream()
-                .map(habit -> new PlannerHabitDTO(habit.getId(), habit.getName(), habit.getCompletedDates().contains(date)))
+        return habitRepository.findAllByUserId(currentUser.id()).stream()
+                .filter(habit -> "active".equals(habit.getStatus()) && metrics.scheduled(habit, date))
+                .map(habit -> new PlannerHabitDTO(habit.getId(), habit.getUserId(), habit.getName(), habit.getCompletedDates().contains(date)))
                 .toList();
     }
 }

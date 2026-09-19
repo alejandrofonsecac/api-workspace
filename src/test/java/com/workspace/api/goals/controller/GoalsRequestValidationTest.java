@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class GoalsRequestValidationTest {
+class GoalsRequestValidationTest extends com.workspace.api.support.AuthenticatedTest {
 
     private static final String VALID_GOAL = """
             {
@@ -150,6 +150,7 @@ class GoalsRequestValidationTest {
 
     private Goals saveGoal() {
         Goals goal = new Goals();
+        goal.setUserId(testUser.getId());
         goal.setGoalName("Estudar Java");
         goal.setExpectedTarget("Concluir cinco aulas");
         goal.setPriority(Priority.HIGH);

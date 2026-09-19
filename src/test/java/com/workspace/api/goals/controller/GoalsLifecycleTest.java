@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Import(GoalsLifecycleTest.TimeConfiguration.class)
 @Transactional
-class GoalsLifecycleTest {
+class GoalsLifecycleTest extends com.workspace.api.support.AuthenticatedTest {
     @TestConfiguration
     static class TimeConfiguration {
         @Bean @Primary Clock fixedClock() {

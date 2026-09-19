@@ -25,24 +25,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@Import(EventService.class)
+@Import({EventService.class, com.workspace.api.user.security.CurrentUser.class, com.workspace.api.goals.service.GoalsConfiguration.class})
 @ActiveProfiles("test")
-class PlannerAvailabilityServiceTest {
+class PlannerAvailabilityServiceTest extends com.workspace.api.support.AuthenticatedTest {
     private static final LocalDate DATE = LocalDate.of(2026, 8, 31);
 
     @Autowired
     private EventService eventService;
 
     @Test
-    void dayWithoutEventsReturnsTwelveAvailableHours() {
+    void dayWithoutEventsReturnsTwentyFourAvailableHours() {
         PlannerAvailabilityResponseDTO availability = eventService.getAvailability(DATE);
 
         assertEquals(DATE, availability.date());
-        assertEquals(12, availability.totalBlocks());
+        assertEquals(24, availability.totalBlocks());
         assertEquals(0, availability.occupiedBlocks());
-        assertEquals(12, availability.availableBlocks());
-        assertEquals(12, availability.availableHours());
-        assertEquals(12, availability.slots().size());
+        assertEquals(24, availability.availableBlocks());
+        assertEquals(24, availability.availableHours());
+        assertEquals(24, availability.slots().size());
         assertTrue(availability.slots().stream().allMatch(slot -> slot.available()));
     }
 
@@ -55,11 +55,11 @@ class PlannerAvailabilityServiceTest {
         PlannerAvailabilityResponseDTO availability = eventService.getAvailability(DATE);
 
         assertEquals(3, availability.occupiedBlocks());
-        assertEquals(9, availability.availableBlocks());
-        assertEquals(9, availability.availableHours());
-        assertFalse(availability.slots().get(0).available());
-        assertFalse(availability.slots().get(4).available());
-        assertFalse(availability.slots().get(11).available());
+        assertEquals(21, availability.availableBlocks());
+        assertEquals(21, availability.availableHours());
+        assertFalse(availability.slots().get(8).available());
+        assertFalse(availability.slots().get(12).available());
+        assertFalse(availability.slots().get(19).available());
     }
 
     @Test
@@ -83,10 +83,10 @@ class PlannerAvailabilityServiceTest {
 
     private static Stream<Arguments> invalidTimeRanges() {
         return Stream.of(
-                Arguments.of(LocalTime.of(7, 0), LocalTime.of(8, 0)),
-                Arguments.of(LocalTime.of(20, 0), LocalTime.of(21, 0)),
-                Arguments.of(LocalTime.of(9, 30), LocalTime.of(10, 30)),
-                Arguments.of(LocalTime.of(9, 0), LocalTime.of(11, 0))
+                Arguments.of(LocalTime.of(9, 0), LocalTime.of(8, 0)),
+                Arguments.of(LocalTime.of(20, 0), LocalTime.of(20, 0)),
+                Arguments.of(LocalTime.of(9, 30, 1), LocalTime.of(10, 30)),
+                Arguments.of(LocalTime.of(9, 0), LocalTime.of(10, 0, 1))
         );
     }
 

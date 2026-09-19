@@ -13,7 +13,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("notes")
-@CrossOrigin(origins = "http://localhost:4200")
 public class NoteController {
     private final NoteService noteService;
 
@@ -26,6 +25,11 @@ public class NoteController {
     public ResponseEntity<NoteResponseDTO> saveNote(@RequestBody NoteRequestDTO request){
         NoteResponseDTO savedNote = noteService.saveNote(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
+    }
+
+    @PutMapping("/{id}")
+    public NoteResponseDTO updateNote(@PathVariable String id, @RequestBody NoteRequestDTO request) {
+        return noteService.updateNote(id, request);
     }
 
     @DeleteMapping("/{id}")

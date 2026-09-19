@@ -1,5 +1,6 @@
 package com.workspace.api.goals.entity;
 
+import com.workspace.api.user.domain.UserOwnedEntity;
 import com.workspace.api.util.domain.Category;
 import com.workspace.api.util.domain.Priority;
 import jakarta.persistence.*;
@@ -9,7 +10,8 @@ import java.time.Instant;
 @Table(name = "tb_goals")
 @Entity
 @Data
-public class Goals {
+@lombok.EqualsAndHashCode(callSuper = true)
+public class Goals extends UserOwnedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

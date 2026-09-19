@@ -22,15 +22,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class NoteDeletionTest {
+class NoteDeletionTest extends com.workspace.api.support.AuthenticatedTest {
     @Autowired MockMvc mvc;
     @Autowired NoteRepository notes;
     @Autowired EntityManager entityManager;
 
     @Test
     void deletesOnlyTheRequestedNoteAndReturnsNoContent() throws Exception {
-        Note selected = notes.save(new Note(null, "Delete me", "Description", null, false, false, null));
-        Note retained = notes.save(new Note(null, "Keep me", "Description", null, false, false, null));
+        Note selected = ownedNote("Delete me");
+        Note retained = ownedNote("Keep me");
 
         mvc.perform(delete("/notes/{id}", selected.getId()))
                 .andExpect(status().isNoContent())
@@ -53,5 +53,10 @@ class NoteDeletionTest {
                 .andExpect(status().isNotFound());
 
         assertThat(notes.count()).isEqualTo(originalCount);
+    }
+    private Note ownedNote(String title) {
+        Note note = new Note(null, title, "Description", null, false, false, null);
+        note.setUserId(testUser.getId());
+        return notes.save(note);
     }
 }

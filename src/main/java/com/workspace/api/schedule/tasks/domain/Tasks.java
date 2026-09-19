@@ -1,18 +1,21 @@
 package com.workspace.api.schedule.tasks.domain;
 
+import com.workspace.api.user.domain.UserOwnedEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Table(name = "tb_tasks")
 @Entity
 @Data
+@lombok.EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class Tasks {
+public class Tasks extends UserOwnedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -28,4 +31,5 @@ public class Tasks {
 
     private LocalDate taskCreatedDate;
     private LocalDate dueDate;
+    private LocalTime dueTime;
 }
