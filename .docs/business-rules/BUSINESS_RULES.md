@@ -2,7 +2,7 @@
 
 ## Responsabilidades após a migração
 
-O backend `api-workspace` calcula os indicadores, decide a validade das operações e persiste os dados do usuário autenticado. O frontend `plannerFyFront` envia intenções, exibe as respostas e mantém o estado de interação. As diretrizes gerais estão em [AGENTS.md](AGENTS.md).
+O backend `api-workspace` calcula os indicadores, decide a validade das operações e persiste os dados do usuário autenticado. O frontend `plannerFyFront` envia intenções, exibe as respostas e mantém o estado de interação. As diretrizes gerais estão em [`AGENTS.md`](../development/AGENTS.md).
 
 | Funcionalidade | Contrato usado pela interface |
 | --- | --- |

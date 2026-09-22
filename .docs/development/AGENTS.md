@@ -117,7 +117,7 @@ Se a lógica precisar antecipar uma regra de negócio, registre a razão junto a
 - Uma lista vazia da API é um estado válido. Não insira dados de demonstração ou IDs inventados nos fluxos reais. Mocks pertencem a testes ou a um modo de demonstração claramente isolado.
 - Falha de consulta não deve produzir totais ou cálculos substitutos apresentados como oficiais. Mostre indisponibilidade e permita nova tentativa.
 - Cache de dados privados deve respeitar a sessão e ser invalidado ao sair ou trocar de conta. Preferências visuais podem usar armazenamento local; ele não é a fonte de verdade dos dados de negócio.
-- Preserve a estratégia documentada em `AUTHENTICATION.md`: token em memória, envio limitado à API configurada e tratamento de expiração. Mudanças na persistência da sessão exigem revisão do fluxo completo com o backend.
+- Preserve a estratégia documentada em [`ACCESS_AND_REFRESH_TOKENS.md`](../authentication/ACCESS_AND_REFRESH_TOKENS.md): token em memória, envio limitado à API configurada e tratamento de expiração. Mudanças na persistência da sessão exigem revisão do fluxo completo com o backend.
 
 ## 7. Fluxo para novas funcionalidades e correções
 
@@ -144,7 +144,7 @@ Não introduza dependências, camadas ou abstrações sem uma necessidade concre
 
 As regras identificadas na análise foram migradas para o backend: métricas de hábitos, resumos de planner e dashboard, projeção de tarefas no calendário, disponibilidade e agendamento transacional. Os consumidores usam os contratos correspondentes; falhas de escrita não simulam sucesso e notas possuem atualização com datas definidas no servidor.
 
-Consulte [BUSINESS_RULES.md](BUSINESS_RULES.md) para contratos, semântica dos cálculos, compatibilidade e limitações. A implementação não equivale a uma implantação no banco real.
+Consulte [`BUSINESS_RULES.md`](../business-rules/BUSINESS_RULES.md) para contratos, semântica dos cálculos, compatibilidade e limitações. A implementação não equivale a uma implantação no banco real.
 
 Pendência de implantação: o repositório estava sem os arquivos originais de migrations V1/V2. A nova V3 depende do schema anterior. Recupere o histórico original e valide o Flyway antes de implantar; não invente arquivos substitutos ou desative a validação para ocultar a ausência.
 
