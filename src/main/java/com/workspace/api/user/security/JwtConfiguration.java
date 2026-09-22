@@ -21,7 +21,7 @@ import java.util.Base64;
  * próximas requisições. Ambos usam a mesma chave porque adotamos HS256.
  * JWT assinado não é criptografado: o seu conteúdo pode ser lido pelo cliente.
  *
- * Veja AUTHENTICATION.md, na raiz do projeto, para o fluxo completo.
+ * Veja .docs/authentication/JWT_CONFIGURATION.md para o fluxo completo.
  */
 @Configuration
 public class JwtConfiguration {
@@ -34,14 +34,14 @@ public class JwtConfiguration {
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException(
                     "JWT_SECRET não configurado. Defina uma chave aleatória em Base64 no .env ou no ambiente. "
-                            + "Veja AUTHENTICATION.md.");
+                            + "Veja .docs/authentication/JWT_CONFIGURATION.md.");
         }
 
         byte[] bytes;
         try {
             bytes = Base64.getDecoder().decode(secret);
         } catch (IllegalArgumentException exception) {
-            throw new IllegalStateException("JWT_SECRET deve estar em Base64. Veja AUTHENTICATION.md.", exception);
+            throw new IllegalStateException("JWT_SECRET deve estar em Base64. Veja .docs/authentication/JWT_CONFIGURATION.md.", exception);
         }
 
         if (bytes.length < 32) {

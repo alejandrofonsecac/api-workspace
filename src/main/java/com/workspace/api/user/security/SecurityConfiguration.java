@@ -25,14 +25,16 @@ public class SecurityConfiguration {
     PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder decoder, UserRepository users){
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder decoder, UserRepository users, RefreshCookie cookie){
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+                .addFilterBefore(new SessionRequestFilter(cookie),
+                        org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users/register", "/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users/register", "/users/login", "/users/refresh", "/users/logout").permitAll()
                         .requestMatchers("/users/*/role").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.decoder(decoder)
