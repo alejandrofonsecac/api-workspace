@@ -25,7 +25,7 @@ import java.util.UUID;
 /**
  * Cadastra usuários, verifica senhas e emite tokens após autenticação.
  * PasswordEncoder cuida do hash da senha; JwtEncoder cuida da assinatura do token.
- * São responsabilidades distintas. Veja AUTHENTICATION.md.
+ * São responsabilidades distintas. Veja .docs/authentication/JWT_CONFIGURATION.md.
  */
 @Service
 public class UserService {
@@ -40,7 +40,7 @@ public class UserService {
     // O Spring fornece os beans definidos em SecurityConfiguration e JwtConfiguration.
     public UserService(UserRepository users, PasswordEncoder passwordEncoder, JwtEncoder jwtEncoder, CurrentUser currentUser,
                        @Value("${app.jwt.issuer}") String issuer,
-                       @Value("${app.jwt.ttl:PT1H}") Duration ttl) {
+                       @Value("${app.jwt.ttl:PT15M}") Duration ttl) {
         if (ttl.isNegative() || ttl.isZero()) throw new IllegalArgumentException("JWT TTL must be positive");
         this.users = users;
         this.passwordEncoder = passwordEncoder;
@@ -97,7 +97,7 @@ public class UserService {
      * Emite um token assinado para o usuário já autenticado. O subject (sub) é
      * seu id; exp limita a validade. Nunca inclua senha ou hash nestes dados.
      */
-    private AuthResponse token(User user) {
+    public AuthResponse token(User user) {
         Instant now = Instant.now();
 
         var claims = JwtClaimsSet.builder()
