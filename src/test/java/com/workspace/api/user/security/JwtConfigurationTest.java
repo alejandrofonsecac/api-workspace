@@ -27,7 +27,7 @@ class JwtConfigurationTest {
             assertThat(context).hasFailed();
             assertThat(context.getStartupFailure()).hasRootCauseMessage(
                     "JWT_SECRET não configurado. Defina uma chave aleatória em Base64 no .env ou no ambiente. "
-                            + "Veja AUTHENTICATION.md.");
+                            + "Veja .docs/authentication/JWT_CONFIGURATION.md.");
         });
     }
 

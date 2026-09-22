@@ -58,7 +58,7 @@ class MultiUserSecurityTest {
     @Test
     void registersLogsInHashesPasswordsAndPreventsPrivilegeInjection() throws Exception {
         String email = UUID.randomUUID() + "@example.com";
-        JsonNode registered = body(mvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON)
+        JsonNode registered = body(mvc.perform(post("/users/register").header("X-PlannerFy-Session", "1").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(java.util.Map.of("name", "Alice", "email", email,
                                 "password", PASSWORD, "role", "ADMIN", "userId", "forged"))))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.user.role").value("USER"))
@@ -71,13 +71,13 @@ class MultiUserSecurityTest {
         String token = registered.path("accessToken").asString();
         mvc.perform(get("/users/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(stored.getId()));
-        mvc.perform(post("/users/login").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/users/login").header("X-PlannerFy-Session", "1").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(java.util.Map.of("email", email.toUpperCase(), "password", PASSWORD))))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.tokenType").value("Bearer"));
-        mvc.perform(post("/users/login").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/users/login").header("X-PlannerFy-Session", "1").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(java.util.Map.of("email", email, "password", "wrong"))))
                 .andExpect(status().isUnauthorized());
-        mvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/users/register").header("X-PlannerFy-Session", "1").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(java.util.Map.of("name", "Again", "email", email.toUpperCase(), "password", PASSWORD))))
                 .andExpect(status().isConflict());
     }
@@ -88,7 +88,7 @@ class MultiUserSecurityTest {
                 "{\"name\":\"\",\"email\":\"invalid\",\"password\":\"short\"}",
                 json.writeValueAsString(java.util.Map.of("name", "Alice", "email", "valid@example.com",
                         "password", "é".repeat(40)))}) {
-            mvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON).content(payload))
+            mvc.perform(post("/users/register").header("X-PlannerFy-Session", "1").contentType(MediaType.APPLICATION_JSON).content(payload))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -110,7 +110,7 @@ class MultiUserSecurityTest {
         user.setEnabled(false);
         users.saveAndFlush(user);
         mvc.perform(auth(get("/notes"), account)).andExpect(status().isUnauthorized());
-        mvc.perform(post("/users/login").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/users/login").header("X-PlannerFy-Session", "1").contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(java.util.Map.of("email", user.getEmail(), "password", PASSWORD))))
                 .andExpect(status().isUnauthorized());
     }
@@ -234,7 +234,7 @@ class MultiUserSecurityTest {
     }
 
     private JsonNode create(String path, String payload, Account account, int status) throws Exception {
-        String response = mvc.perform(auth(post(path).contentType(MediaType.APPLICATION_JSON).content(payload), account))
+        String response = mvc.perform(auth(post(path).header("X-PlannerFy-Session", "1").contentType(MediaType.APPLICATION_JSON).content(payload), account))
                 .andExpect(status().is(status)).andReturn().getResponse().getContentAsString();
         return response.isBlank() ? json.createObjectNode() : body(response);
     }
