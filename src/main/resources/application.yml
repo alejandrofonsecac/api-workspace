@@ -22,6 +22,9 @@ app:
   jwt:
     secret: ${JWT_SECRET:}
     issuer: ${JWT_ISSUER:workspace-api}
-    ttl: ${JWT_TTL:PT1H}
+    ttl: ${JWT_TTL:PT15M}
+  refresh:
+    max-age: ${REFRESH_MAX_AGE:P90D}
+    idle-timeout: ${REFRESH_IDLE_TIMEOUT:P30D}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
