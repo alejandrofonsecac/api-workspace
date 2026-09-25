@@ -1,5 +1,6 @@
 package com.workspace.api.user.security;
 
+import com.workspace.api.user.domain.User;
 import com.workspace.api.user.repository.UserRepository;
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,7 +30,7 @@ public class SecurityConfiguration {
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder decoder, UserRepository users, RefreshCookie cookie){
         return http
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new SessionRequestFilter(cookie),
                         org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -42,8 +44,10 @@ public class SecurityConfiguration {
                             if (token.getSubject() == null || token.getExpiresAt() == null) {
                                 throw new OAuth2AuthenticationException("invalid_token");
                             }
-                            var user = users.findById(token.getSubject()).filter(value -> value.isEnabled())
+
+                            var user = users.findById(token.getSubject()).filter(User::isEnabled)
                                     .orElseThrow(() -> new OAuth2AuthenticationException("invalid_token"));
+
                             return new JwtAuthenticationToken(token,
                                     List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())), user.getId());
                         })))
