@@ -1,5 +1,6 @@
 package com.workspace.api.user.security;
 
+import com.workspace.api.user.security.config.JwtConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -27,7 +28,7 @@ class JwtConfigurationTest {
             assertThat(context).hasFailed();
             assertThat(context.getStartupFailure()).hasRootCauseMessage(
                     "JWT_SECRET não configurado. Defina uma chave aleatória em Base64 no .env ou no ambiente. "
-                            + "Veja AUTHENTICATION.md.");
+                            + "Veja .docs/authentication/JWT_CONFIGURATION.md.");
         });
     }
 

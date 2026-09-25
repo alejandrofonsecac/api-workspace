@@ -1,15 +1,47 @@
-# Workspace API
+# PlannerFy
 
-## Contexto de desenvolvimento
+PlannerFy é uma aplicação de produtividade pessoal. Ela reúne tarefas, agenda,
+eventos, hábitos, metas, notas e indicadores diários em um único espaço de trabalho.
+Cada conta acessa apenas seus próprios dados e o backend decide as regras, os cálculos
+oficiais e as permissões.
 
-Consulte [AGENTS.md](AGENTS.md) antes de alterar o projeto. O documento define a divisão de responsabilidades entre frontend e backend, os padrões de código e a direção das migrações pendentes. A mesma diretriz está no repositório `plannerFyFront`.
+Este repositório contém a API do PlannerFy, construída com Java 21, Spring Boot, JPA,
+PostgreSQL e Flyway. O frontend Angular fica no repositório `plannerFyFront` e consome
+os contratos HTTP desta API.
 
-API para organização pessoal e produtividade, reunindo notas, tarefas, eventos, hábitos e metas em um único workspace.
+## O que a API oferece
 
-O projeto oferece planejamento de agenda, acompanhamento de hábitos e definição de foco semanal para metas, além de consulta de clima. Cada usuário possui sua própria conta e acesso aos seus dados.
+- Cadastro, login e sessões com access token JWT de curta duração e refresh token
+  rotativo, revogável e protegido por cookie.
+- Planejamento de tarefas e eventos, incluindo disponibilidade e agendamento
+  transacional de tarefas no calendário.
+- Acompanhamento de hábitos, sequências, consistência e histórico calculados no servidor.
+- Metas, foco semanal, dashboard diário, notas e consulta de clima.
+- Isolamento de dados por usuário, autorização por perfil e migrations versionadas.
 
-Desenvolvido com Java 21 e Spring Boot, utiliza PostgreSQL para persistência e autenticação JWT para proteger o acesso.
+## Documentação
 
-## Regras de negócio
+Toda a documentação complementar está em [`.docs`](.docs):
 
-Consulte [BUSINESS_RULES.md](BUSINESS_RULES.md) para os contratos migrados, os cálculos do servidor, os testes e a pendência de recuperação das migrations V1/V2 antes da implantação.
+| Tema | Documento |
+| --- | --- |
+| Diretrizes de desenvolvimento | [`.docs/development/AGENTS.md`](.docs/development/AGENTS.md) |
+| Autenticação e sessões | [`.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md`](.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md) |
+| Configuração do JWT | [`.docs/authentication/JWT_CONFIGURATION.md`](.docs/authentication/JWT_CONFIGURATION.md) |
+| Regras e contratos de negócio | [`.docs/business-rules/BUSINESS_RULES.md`](.docs/business-rules/BUSINESS_RULES.md) |
+| Operação da API | [`.docs/operations/API_OPERATION.md`](.docs/operations/API_OPERATION.md) |
+| Relatórios técnicos | [`.docs/reports`](.docs/reports) |
+| Histórico de metas | [`.docs/goals`](.docs/goals) |
+| Referências do Spring Boot | [`.docs/reference/SPRING_BOOT_HELP.md`](.docs/reference/SPRING_BOOT_HELP.md) |
+
+## Desenvolvimento local
+
+Configure `API_URL`, `API_USER`, `API_PASSWORD` e `JWT_SECRET` no ambiente ou em um
+arquivo `.env` local. Os detalhes de configuração, variáveis de sessão e os cuidados
+para implantação estão na documentação de autenticação.
+
+Execute a API com `./mvnw spring-boot:run` ou `./mvnw.cmd spring-boot:run` no Windows.
+Para os testes, use `./mvnw test` ou `./mvnw.cmd test`.
+
+Antes de implantar, confira o histórico Flyway do banco de destino. As migrations são
+versionadas e não devem ser reescritas nem substituídas por arquivos inventados.
