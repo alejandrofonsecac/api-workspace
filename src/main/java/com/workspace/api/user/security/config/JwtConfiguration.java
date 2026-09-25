@@ -1,4 +1,4 @@
-package com.workspace.api.user.security;
+package com.workspace.api.user.security.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.beans.factory.annotation.Value;

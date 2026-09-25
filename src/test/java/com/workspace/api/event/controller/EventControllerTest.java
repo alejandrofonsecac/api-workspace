@@ -42,11 +42,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EventController.class)
-@Import({CorsConfig.class, PlannerExceptionHandler.class, com.workspace.api.user.security.SecurityConfiguration.class})
+@Import({CorsConfig.class, PlannerExceptionHandler.class, com.workspace.api.user.security.config.SecurityConfiguration.class})
 @org.springframework.security.test.context.support.WithMockUser
 class EventControllerTest {
     @MockitoBean com.workspace.api.user.repository.UserRepository users;
     @MockitoBean org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
+    @MockitoBean com.workspace.api.user.security.RefreshCookie refreshCookie;
 
     private static final String VALID_EVENT_JSON = """
             {

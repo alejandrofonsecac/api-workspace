@@ -1,5 +1,6 @@
 package com.workspace.api.user.security;
 
+import com.workspace.api.user.security.config.JwtConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

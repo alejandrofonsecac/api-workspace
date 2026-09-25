@@ -1,7 +1,9 @@
-package com.workspace.api.user.security;
+package com.workspace.api.user.security.config;
 
 import com.workspace.api.user.domain.User;
 import com.workspace.api.user.repository.UserRepository;
+import com.workspace.api.user.security.RefreshCookie;
+import com.workspace.api.user.security.filter.SessionRequestFilter;
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,5 +1,6 @@
-package com.workspace.api.user.controller;
+package com.workspace.api.user.handler;
 
+import com.workspace.api.user.controller.UserController;
 import com.workspace.api.user.exception.RefreshRejectedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;

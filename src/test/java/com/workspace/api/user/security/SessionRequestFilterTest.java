@@ -1,5 +1,6 @@
 package com.workspace.api.user.security;
 
+import com.workspace.api.user.security.filter.SessionRequestFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletRequest;
