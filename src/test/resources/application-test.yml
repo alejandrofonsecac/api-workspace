@@ -14,6 +14,8 @@ spring:
     enabled: false
 
 app:
+  retention:
+    enabled: false
   jwt:
     secret: dGVzdC1vbmx5LXNlY3JldC1tdXN0LW5ldmVyLWJlLXVzZWQtaW4tcHJvZA==
     issuer: workspace-api-test
