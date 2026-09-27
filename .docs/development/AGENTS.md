@@ -144,7 +144,7 @@ Não introduza dependências, camadas ou abstrações sem uma necessidade concre
 
 As regras identificadas na análise foram migradas para o backend: métricas de hábitos, resumos de planner e dashboard, projeção de tarefas no calendário, disponibilidade e agendamento transacional. Os consumidores usam os contratos correspondentes; falhas de escrita não simulam sucesso e notas possuem atualização com datas definidas no servidor.
 
-Consulte [`BUSINESS_RULES.md`](../business-rules/BUSINESS_RULES.md) para contratos, semântica dos cálculos, compatibilidade e limitações. A implementação não equivale a uma implantação no banco real.
+Consulte [`../BUSINESS_RULES.md`](../business-rules/BUSINESS_RULES.md) para contratos, semântica dos cálculos, compatibilidade e limitações. A implementação não equivale a uma implantação no banco real.
 
 Pendência de implantação: o repositório estava sem os arquivos originais de migrations V1/V2. A nova V3 depende do schema anterior. Recupere o histórico original e valide o Flyway antes de implantar; não invente arquivos substitutos ou desative a validação para ocultar a ausência.
 

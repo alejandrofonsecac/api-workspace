@@ -53,7 +53,7 @@ Foram restauradas as migrações V1__existing_workspace_schema.sql e V2__users_a
 - `GET /home/dashboard` para os indicadores diários oficiais.
 - `PUT /notes/{id}` para atualização parcial de nota.
 
-Os detalhes dos payloads e regras estão em [BUSINESS_RULES.md](../BUSINESS_RULES.md).
+Os detalhes dos payloads e regras estão em [BUSINESS_RULES.md](../.docs/BUSINESS_RULES.md).
 
 ## Segurança atual
 

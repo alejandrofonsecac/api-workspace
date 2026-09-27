@@ -69,3 +69,7 @@ As migrations originais `V1__existing_workspace_schema.sql` e `V2__users_and_dat
 O código foi validado com banco H2 isolado. O teste opcional `BusinessRulesMigrationTest` valida V3 sobre um schema anterior mínimo em PostgreSQL descartável, com `RULES_MIGRATION_TEST_URL` explicitamente apontando para `127.0.0.1`, usuário `rules_test`. Esse teste verifica a alteração incremental e a preservação dos registros.
 
 Nenhuma migration desta alteração foi aplicada ao banco real da aplicação.
+
+## Retenção automática
+
+A política e os contratos de tarefas, eventos e notas concluídos estão em [Retenção automática](../retention/README.md).

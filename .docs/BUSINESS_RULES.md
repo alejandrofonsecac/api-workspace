@@ -2,7 +2,7 @@
 
 ## Responsabilidades após a migração
 
-O backend `api-workspace` calcula os indicadores, decide a validade das operações e persiste os dados do usuário autenticado. O frontend `plannerFyFront` envia intenções, exibe as respostas e mantém o estado de interação. As diretrizes gerais estão em [AGENTS.md](AGENTS.md).
+O backend `api-workspace` calcula os indicadores, decide a validade das operações e persiste os dados do usuário autenticado. O frontend `plannerFyFront` envia intenções, exibe as respostas e mantém o estado de interação. As diretrizes gerais estão em [AGENTS.md](../AGENTS.md).
 
 | Funcionalidade | Contrato usado pela interface |
 | --- | --- |
@@ -62,10 +62,14 @@ Permanecem locais: organização visual de eventos, posicionamento em pixels, gr
 
 ## Banco e implantação
 
-Foi adicionada `src/main/resources/db/migration/V3__backend_business_rules.sql`, que acrescenta os campos necessários preservando registros existentes e o histórico de hábitos. Esta migration pressupõe o schema multiusuário anterior.
+Foi adicionada `../src/main/resources/db/migration/V3__backend_business_rules.sql`, que acrescenta os campos necessários preservando registros existentes e o histórico de hábitos. Esta migration pressupõe o schema multiusuário anterior.
 
 As migrations originais `V1__existing_workspace_schema.sql` e `V2__users_and_data_ownership.sql` foram restauradas do histórico local do repositório e verificadas contra seus blobs originais. Elas devem permanecer sem alterações para preservar os checksums registrados em `flyway_schema_history`. Não execute `repair` para ocultar divergências nem aplique V3 diretamente em um banco vazio.
 
 O código foi validado com banco H2 isolado. O teste opcional `BusinessRulesMigrationTest` valida V3 sobre um schema anterior mínimo em PostgreSQL descartável, com `RULES_MIGRATION_TEST_URL` explicitamente apontando para `127.0.0.1`, usuário `rules_test`. Esse teste verifica a alteração incremental e a preservação dos registros.
 
 Nenhuma migration desta alteração foi aplicada ao banco real da aplicação.
+
+## Retenção automática de itens concluídos
+
+As regras, os contratos, a operação e a validação da limpeza estão em [`.docs/retention/README.md`](retention/README.md).
