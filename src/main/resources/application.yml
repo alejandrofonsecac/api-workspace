@@ -19,6 +19,12 @@ spring:
     baseline-version: 0
 
 app:
+  time-zone: ${APP_TIME_ZONE:America/Sao_Paulo}
+  retention:
+    enabled: ${RETENTION_ENABLED:true}
+    cron: ${RETENTION_CRON:0 0 3 * * *}
+    batch-size: ${RETENTION_BATCH_SIZE:500}
+    max-batches-per-resource: ${RETENTION_MAX_BATCHES:100}
   jwt:
     secret: ${JWT_SECRET:}
     issuer: ${JWT_ISSUER:workspace-api}
