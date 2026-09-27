@@ -1,9 +1,10 @@
 package com.workspace.api.schedule.tasks.domain;
 
-import com.workspace.api.user.domain.UserOwnedEntity;
+import com.workspace.api.retention.domain.RetainedEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -12,10 +13,10 @@ import java.time.LocalTime;
 @Table(name = "tb_tasks")
 @Entity
 @Data
-@lombok.EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class Tasks extends UserOwnedEntity {
+public class Tasks extends RetainedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -24,7 +25,6 @@ public class Tasks extends UserOwnedEntity {
     private String priority;
 
     private String dueLabel;
-    private Boolean completed = false;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

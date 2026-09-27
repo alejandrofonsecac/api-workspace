@@ -1,6 +1,6 @@
 package com.workspace.api.event.domain;
 
-import com.workspace.api.user.domain.UserOwnedEntity;
+import com.workspace.api.retention.domain.RetainedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,7 +21,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "events")
-public class Event extends UserOwnedEntity {
+public class Event extends RetainedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

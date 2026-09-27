@@ -1,6 +1,6 @@
 package com.workspace.api.note.domain;
 
-import com.workspace.api.user.domain.UserOwnedEntity;
+import com.workspace.api.retention.domain.RetainedEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @lombok.EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class Note extends UserOwnedEntity {
+public class Note extends RetainedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

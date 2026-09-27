@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class NoteService {
-    private NoteRepository noteRepository;
+    private final NoteRepository noteRepository;
     private final CurrentUser currentUser;
     private final java.time.Clock clock;
 
@@ -38,6 +38,8 @@ public class NoteService {
         note.setFixed(Boolean.TRUE.equals(request.fixed()));
         note.setFixedAt(Boolean.TRUE.equals(request.fixed()) ? java.time.LocalDateTime.now(clock) : null);
 
+        note.updateRetention(request.completed(), request.isRecurring(), request.recurrenceRule(), clock.instant());
+
         Note noteSaved = noteRepository.save(note);
 
         return new NoteResponseDTO(noteSaved);
@@ -45,7 +47,7 @@ public class NoteService {
 
     @Transactional
     public NoteResponseDTO updateNote(String id, NoteRequestDTO request) {
-        Note note = noteRepository.findByIdAndUserId(id, currentUser.id())
+        Note note = noteRepository.findForUpdateByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
         if (request.title() != null) { requireTitle(request.title()); note.setTitle(request.title().trim()); }
         if (request.description() != null) note.setDescription(request.description());
@@ -55,12 +57,13 @@ public class NoteService {
             note.setFixedAt(request.fixed() ? java.time.LocalDateTime.now(clock) : null);
         }
         note.setEdited(java.time.LocalDateTime.now(clock));
+        note.updateRetention(request.completed(), request.isRecurring(), request.recurrenceRule(), clock.instant());
         return new NoteResponseDTO(noteRepository.save(note));
     }
 
     @Transactional
     public void deleteNote(String id){
-        Note note = noteRepository.findByIdAndUserId(id, currentUser.id())
+        Note note = noteRepository.findForUpdateByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found: " + id));
         noteRepository.delete(note);
     }

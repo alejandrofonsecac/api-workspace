@@ -54,6 +54,8 @@ public class PlannerService {
         Event event = eventRepository.findByIdAndUserId(created.id(), currentUser.id()).orElseThrow();
         event.setKind("task");
         event.setScheduledTaskId(taskId);
+        event.setRecurring(task.isRecurring());
+        event.setRecurrenceRule(task.getRecurrenceRule());
         tasks.delete(task);
         return new EventResponseDTO(eventRepository.saveAndFlush(event));
     }

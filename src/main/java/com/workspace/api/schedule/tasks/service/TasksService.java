@@ -1,5 +1,6 @@
 package com.workspace.api.schedule.tasks.service;
 
+import com.workspace.api.user.repository.UserRepository;
 import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.schedule.tasks.domain.Tasks;
 import com.workspace.api.schedule.tasks.dto.TasksDTO;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -18,8 +20,8 @@ import java.util.List;
 public class TasksService {
     private final TasksRepository tasksRepository;
     private final CurrentUser currentUser;
-    private final java.time.Clock clock;
-    private final com.workspace.api.user.repository.UserRepository users;
+    private final Clock clock;
+    private final UserRepository users;
 
     public List<TasksDTO> searchAllTasks() {
         return tasksRepository.findAllByUserId(currentUser.id()).stream()
@@ -36,7 +38,7 @@ public class TasksService {
         tasks.setTitle(dto.title().trim());
         tasks.setPriority(dto.priority());
         tasks.setDueLabel(null);
-        tasks.setCompleted(dto.completed() != null && dto.completed());
+        tasks.updateRetention(dto.completed(), dto.isRecurring(), dto.recurrenceRule(), clock.instant());
         tasks.setNotes(dto.notes());
 
         tasks.setTaskCreatedDate(LocalDate.now(clock));
@@ -51,7 +53,7 @@ public class TasksService {
     @Transactional
     public TasksDTO updateTask(Long id, TasksDTO dto) {
         lockUser();
-        Tasks tasks = tasksRepository.findByIdAndUserId(id, currentUser.id())
+        Tasks tasks = tasksRepository.findForUpdateByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + id));
 
         if (dto.title() != null) {
@@ -61,7 +63,7 @@ public class TasksService {
         if (dto.priority() != null) tasks.setPriority(dto.priority());
         if (dto.dueDate() != null) tasks.setDueDate(dto.dueDate());
         if (dto.dueTime() != null) tasks.setDueTime(dto.dueTime());
-        if (dto.completed() != null) tasks.setCompleted(dto.completed());
+        tasks.updateRetention(dto.completed(), dto.isRecurring(), dto.recurrenceRule(), clock.instant());
         if (dto.notes() != null) tasks.setNotes(dto.notes());
 
         Tasks updatedTask = tasksRepository.save(tasks);
@@ -72,7 +74,7 @@ public class TasksService {
     @Transactional
     public void deleteTask(Long id) {
         lockUser();
-        Tasks task = tasksRepository.findByIdAndUserId(id, currentUser.id())
+        Tasks task = tasksRepository.findForUpdateByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + id));
         tasksRepository.delete(task);
     }
@@ -93,7 +95,7 @@ public class TasksService {
             label = task.getDueDate().equals(today) ? "Hoje" : task.getDueDate().equals(today.plusDays(1)) ? "Amanhã" : task.getDueDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         }
         if (task.getDueTime() != null) label += ", " + task.getDueTime();
-        return new TasksDTO(task.getId(), task.getUserId(), task.getTitle(), task.getPriority(), label, task.getCompleted(), task.getNotes(), task.getDueDate(), task.getDueTime());
+        return new TasksDTO(task.getId(), task.getUserId(), task.getTitle(), task.getPriority(), label, task.getCompleted(), task.getNotes(), task.getDueDate(), task.getDueTime(), task.getCompletedAt(), task.isRecurring(), task.getRecurrenceRule());
     }
 
     public long countTasks() {

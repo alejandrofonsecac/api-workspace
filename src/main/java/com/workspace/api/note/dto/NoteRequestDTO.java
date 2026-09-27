@@ -8,6 +8,9 @@ public record NoteRequestDTO(
         LocalDateTime edited,
         Boolean favourite,
         Boolean fixed,
-        LocalDateTime fixedAt
+        LocalDateTime fixedAt,
+        Boolean completed,
+        Boolean isRecurring,
+        String recurrenceRule
 ) {
 }

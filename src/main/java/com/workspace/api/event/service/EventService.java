@@ -73,7 +73,7 @@ public class EventService {
     public long countEvents() { return eventRepository.countByUserIdAndDate(currentUser.id(), LocalDate.now(clock)); }
 
     private Event find(Long id) {
-        return eventRepository.findByIdAndUserId(id, currentUser.id()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+        return eventRepository.findForUpdateByIdAndUserId(id, currentUser.id()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
     }
 
     private void validate(EventRequestDTO request, Long ignoredId) {
@@ -91,5 +91,6 @@ public class EventService {
         event.setStartTime(request.startTime()); event.setEndTime(EventTimes.parseEnd(request.endTime()));
         event.setDescription(request.description()); event.setLocation(request.location());
         event.setSource(request.source()); event.setCategory(request.category());
+        event.updateRetention(request.completed(), request.isRecurring(), request.recurrenceRule(), clock.instant());
     }
 }
