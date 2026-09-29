@@ -1,11 +1,13 @@
 package com.workspace.api.event.service;
 
-import com.workspace.api.event.domain.EventCategory;
-import com.workspace.api.event.domain.EventSource;
-import com.workspace.api.event.dto.EventRequestDTO;
-import com.workspace.api.planner.dto.PlannerAvailabilityResponseDTO;
-import com.workspace.api.planner.exception.InvalidPlannerSlotException;
-import com.workspace.api.planner.exception.OccupiedPlannerSlotException;
+import com.workspace.api.pages.event.domain.EventCategory;
+import com.workspace.api.pages.event.domain.EventSource;
+import com.workspace.api.pages.event.dto.EventRequestDTO;
+import com.workspace.api.pages.event.service.EventService;
+import com.workspace.api.pages.goals.service.GoalsConfiguration;
+import com.workspace.api.pages.planner.dto.PlannerAvailabilityResponseDTO;
+import com.workspace.api.pages.planner.exception.InvalidPlannerSlotException;
+import com.workspace.api.pages.planner.exception.OccupiedPlannerSlotException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -25,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@Import({EventService.class, com.workspace.api.user.security.CurrentUser.class, com.workspace.api.goals.service.GoalsConfiguration.class})
+@Import({EventService.class, com.workspace.api.user.security.CurrentUser.class, GoalsConfiguration.class})
 @ActiveProfiles("test")
 class PlannerAvailabilityServiceTest extends com.workspace.api.support.AuthenticatedTest {
     private static final LocalDate DATE = LocalDate.of(2026, 8, 31);

@@ -1,5 +1,6 @@
 package com.workspace.api.home.weather.validation;
 
+import com.workspace.api.pages.home.weather.validation.WeatherValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;

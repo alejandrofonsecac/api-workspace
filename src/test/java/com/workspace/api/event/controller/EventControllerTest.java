@@ -1,13 +1,14 @@
 package com.workspace.api.event.controller;
 
 import com.workspace.api.config.CorsConfig;
-import com.workspace.api.event.domain.EventCategory;
-import com.workspace.api.event.domain.EventSource;
-import com.workspace.api.event.dto.EventRequestDTO;
-import com.workspace.api.event.dto.EventResponseDTO;
-import com.workspace.api.event.service.EventService;
-import com.workspace.api.planner.controller.PlannerExceptionHandler;
-import com.workspace.api.planner.exception.OccupiedPlannerSlotException;
+import com.workspace.api.pages.event.controller.EventController;
+import com.workspace.api.pages.event.domain.EventCategory;
+import com.workspace.api.pages.event.domain.EventSource;
+import com.workspace.api.pages.event.dto.EventRequestDTO;
+import com.workspace.api.pages.event.dto.EventResponseDTO;
+import com.workspace.api.pages.event.service.EventService;
+import com.workspace.api.pages.planner.controller.PlannerExceptionHandler;
+import com.workspace.api.pages.planner.exception.OccupiedPlannerSlotException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

@@ -1,7 +1,7 @@
 package com.workspace.api.habit;
 
-import com.workspace.api.habit.entity.Habit;
-import com.workspace.api.habit.service.HabitMetrics;
+import com.workspace.api.pages.habit.entity.Habit;
+import com.workspace.api.pages.habit.service.HabitMetrics;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.util.Set;

@@ -1,12 +1,15 @@
 package com.workspace.api.retention;
 
-import com.workspace.api.event.controller.EventController;
-import com.workspace.api.event.service.EventService;
-import com.workspace.api.goals.service.GoalsConfiguration;
-import com.workspace.api.note.controller.NoteController;
-import com.workspace.api.note.service.NoteService;
-import com.workspace.api.planner.controller.PlannerController;
-import com.workspace.api.planner.service.PlannerService;
+import com.workspace.api.pages.event.controller.EventController;
+import com.workspace.api.pages.event.service.EventService;
+import com.workspace.api.pages.goals.service.GoalsConfiguration;
+import com.workspace.api.pages.event.service.CalendarQueryService;
+import com.workspace.api.pages.note.controller.NoteController;
+import com.workspace.api.pages.note.service.NoteService;
+import com.workspace.api.pages.event.controller.CalendarController;
+import com.workspace.api.pages.planner.controller.PlannerExceptionHandler;
+import com.workspace.api.pages.planner.controller.PlannerController;
+import com.workspace.api.pages.planner.service.PlannerService;
 import com.workspace.api.retention.repository.RetentionRepository;
 import com.workspace.api.retention.service.RetentionBatchService;
 import com.workspace.api.user.security.CurrentUser;
@@ -27,7 +30,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableAutoConfiguration
 @EntityScan("com.workspace.api")
 @EnableJpaRepositories("com.workspace.api")
-@Import({com.workspace.api.planner.controller.PlannerExceptionHandler.class, com.workspace.api.event.controller.CalendarController.class, com.workspace.api.event.service.CalendarQueryService.class, EventController.class, EventService.class, GoalsConfiguration.class,
+@Import({PlannerExceptionHandler.class, CalendarController.class, CalendarQueryService.class, EventController.class, EventService.class, GoalsConfiguration.class,
         NoteController.class, NoteService.class, PlannerController.class, PlannerService.class,
         CurrentUser.class, RefreshCookie.class,
         JwtConfiguration.class, SecurityConfiguration.class,

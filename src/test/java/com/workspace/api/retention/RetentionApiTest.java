@@ -1,5 +1,6 @@
 package com.workspace.api.retention;
 
+import com.workspace.api.pages.event.repository.EventRepository;
 import com.workspace.api.support.AuthenticatedTest;
 import com.workspace.api.user.domain.User;
 import com.workspace.api.user.repository.UserRepository;
@@ -28,7 +29,8 @@ class RetentionApiTest extends AuthenticatedTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired UserRepository users;
-    @Autowired com.workspace.api.event.repository.EventRepository events;
+    @Autowired
+    EventRepository events;
 
     private String payload(String route, String fields) {
         String base = route.equals("/events")

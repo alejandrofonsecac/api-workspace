@@ -1,7 +1,7 @@
 package com.workspace.api.retention;
 
-import com.workspace.api.event.domain.Event;
-import com.workspace.api.note.domain.Note;
+import com.workspace.api.pages.event.domain.Event;
+import com.workspace.api.pages.note.domain.Note;
 import com.workspace.api.retention.domain.RetainedEntity;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;

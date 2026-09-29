@@ -1,6 +1,6 @@
 package com.workspace.api.planner;
 
-import com.workspace.api.event.repository.EventRepository;
+import com.workspace.api.pages.event.repository.EventRepository;
 import com.workspace.api.user.domain.User;
 import com.workspace.api.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.workspace.api.habit;
 
-import com.workspace.api.habit.repository.HabitRepository;
+import com.workspace.api.pages.habit.repository.HabitRepository;
 import com.workspace.api.support.AuthenticatedTest;
 import com.workspace.api.user.domain.User;
 import com.workspace.api.user.repository.UserRepository;
