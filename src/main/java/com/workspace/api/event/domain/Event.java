@@ -29,19 +29,15 @@ public class Event extends RetainedEntity {
     @Column(nullable = false)
     private String kind = "event";
 
-    @Column(unique = true)
-    private Long scheduledTaskId;
+    private String priority;
 
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
     private LocalDate date;
 
-    @Column(nullable = false)
     private LocalTime startTime;
 
-    @Column(nullable = false)
     private LocalTime endTime;
 
     @Column(columnDefinition = "TEXT")

@@ -18,16 +18,19 @@ public final class EventTimes {
     }
 
     public static String endText(LocalTime time) {
-        return time.equals(LocalTime.MIDNIGHT) ? "24:00" : time.toString();
+        return time == null ? null : time.equals(LocalTime.MIDNIGHT) ? "24:00" : time.toString();
     }
 
     public static LocalTime parseEnd(String time) {
-        return "24:00".equals(time) ? LocalTime.MIDNIGHT : LocalTime.parse(time);
+        return time == null ? null : "24:00".equals(time) ? LocalTime.MIDNIGHT : LocalTime.parse(time);
     }
 
     public static boolean valid(LocalTime start, String end) {
-        if (start == null || end == null || !end.matches("(?:[01][0-9]|2[0-3]):[0-5][0-9]|24:00")) return false;
-        if (start.getSecond() != 0 || start.getNano() != 0 || "00:00".equals(end)) return false;
+        if (start == null) return end == null;
+        if (start.getSecond() != 0 || start.getNano() != 0) return false;
+        if (end == null) return true;
+        if (!end.matches("(?:[01][0-9]|2[0-3]):[0-5][0-9]|24:00")) return false;
+        if ("00:00".equals(end)) return false;
         return endMinutes(parseEnd(end)) > startMinutes(start);
     }
 }

@@ -12,11 +12,10 @@ import java.time.LocalTime;
 public record EventRequestDTO(
         @NotBlank @Size(max = 255)
         String title,
-        @NotNull @JsonFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "yyyy-MM-dd")
         LocalDate date,
-        @NotNull @JsonFormat(pattern = "HH:mm")
+        @JsonFormat(pattern = "HH:mm")
         LocalTime startTime,
-        @NotBlank
         String endTime,
         String description,
         String location,
@@ -24,12 +23,20 @@ public record EventRequestDTO(
         @NotNull EventCategory category,
         Boolean completed,
         Boolean isRecurring,
-        String recurrenceRule
+        String recurrenceRule,
+        @Pattern(regexp = "Alta|Média|Normal") String priority
 ) {
 
-    public EventRequestDTO(String title, LocalDate date, LocalTime startTime, String endTime,
-                           String description, String location, EventSource source, EventCategory category) {
-        this(title, date, startTime, endTime, description, location, source, category, null, null, null);
+    public EventRequestDTO(String title,
+                           LocalDate date,
+                           LocalTime startTime,
+                           String endTime,
+                           String description,
+                           String location,
+                           EventSource source,
+                           EventCategory category
+    ) {
+        this(title, date, startTime, endTime, description, location, source, category, null, null, null, null);
     }
 
     public EventRequestDTO(String title,

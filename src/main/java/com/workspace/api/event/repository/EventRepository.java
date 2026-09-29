@@ -14,7 +14,6 @@ import java.util.List;
 
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
-    Optional<Event> findByScheduledTaskIdAndUserId(Long taskId, String userId);
 
     List<Event> findAllByUserId(String userId);
 
