@@ -68,7 +68,7 @@ public final class RecurrencePolicy {
 
             if (result.size() == 1000){
                 throw invalid("Use at most 1000 occurrences");
-            } 
+            }
             result.add(date);
         }
         return result;
