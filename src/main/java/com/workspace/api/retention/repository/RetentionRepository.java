@@ -15,7 +15,7 @@ import java.time.ZoneOffset;
 @RequiredArgsConstructor
 public class RetentionRepository {
     public enum Resource {
-        TASKS("tb_tasks"), EVENTS("events"), NOTES("tb_note");
+        EVENTS("events"), NOTES("tb_note");
 
         private final String table;
         Resource(String table) { this.table = table; }
