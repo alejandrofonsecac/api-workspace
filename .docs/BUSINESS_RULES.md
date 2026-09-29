@@ -37,7 +37,7 @@ As rotas antigas de hábitos em `/habit` continuam disponíveis para compatibili
 
 O contrato de gerenciamento usa `name`, `icon`, `categoryId`, `frequencyType`, `time`, `goal`, `note` e `daysOfWeek`. `categoryId` mantém os identificadores da interface (`trabalho`, `estudo`, `saude`, `mente`, `bem-estar`, `pessoal`, `projetos`), mapeados no servidor para o enum de domínio.
 
-- O backend aceita frequência diária, dias úteis e personalizada. Nesta última, `daysOfWeek` contém números de 1 (segunda-feira) a 7 (domingo). A tela atual continua oferecendo frequência diária.
+- O backend aceita frequência diária, dias úteis e personalizada. Nesta última, `daysOfWeek` contém números de 1 (segunda-feira) a 7 (domingo). A tela oferece “Todo dia” e “Definir”, com seleção de dias; hábitos legados de dias úteis são editados como segunda a sexta.
 - O histórico só aceita execução em dia previsto, a partir da criação, sem data futura e com o hábito ativo.
 - A sequência considera os dias previstos pela frequência. O dia atual ainda não concluído não quebra a sequência até terminar; dias não previstos não a interrompem.
 - A consistência é o percentual de dias previstos concluídos nos últimos 30 dias, limitado à data de criação. Melhor sequência, total de dias e marcos também vêm do servidor.
@@ -73,3 +73,48 @@ Nenhuma migration desta alteração foi aplicada ao banco real da aplicação.
 ## Retenção automática de itens concluídos
 
 As regras, os contratos, a operação e a validação da limpeza estão em [`.docs/retention/README.md`](retention/README.md).
+
+
+## Recorrência com data final
+
+POST /schedule/tasks e POST /events (também /planner/events) expandem no servidor
+regras FREQ=DAILY|WEEKLY|MONTHLY|YEARLY;UNTIL=YYYYMMDD, usando dueDate/date como
+âncora. UNTIL é inclusivo; máximo de 1.000 ocorrências e horizonte de dez anos.
+Datas inexistentes (dia 31 ou 29/02) são puladas sem deslocar a âncora.
+
+A criação persiste todas as ocorrências na mesma transação e mantém a resposta
+anterior (primeira ocorrência). O cliente recarrega a listagem. Conclusão inicial
+só afeta a primeira; cada ID mantém sua própria conclusão e proteção da retenção V5.
+Conflito em qualquer data de evento rejeita tudo com 409; regra/data inválida dá 400.
+O bloqueio do usuário continua serializando todas as escritas da agenda.
+
+Atualizar, reabrir ou excluir afeta apenas o ID selecionado; não há operação de
+série inteira. Agendar uma tarefa converte somente aquela ocorrência em evento,
+preservando as demais e a proteção recorrente, sem expandir novamente a regra.
+
+GET /schedule/tasks/getTask e /planner/tasks limitam recorrências ao domingo
+da semana atual do servidor e mantêm pendências anteriores. Concluídas recorrentes
+de semanas anteriores ficam no histórico; /calendar/events passa a incluir tarefas
+recorrentes concluídas e campos completed, isRecurring e recurrenceRule.
+A semana vai de segunda a domingo. Datas futuras permanecem persistidas no calendário.
+
+Regras legadas sem UNTIL continuam como metadados de proteção, sem geração
+retroativa. Nenhuma migration foi alterada ou criada. Esta funcionalidade exige
+a publicação coordenada dos dois repositórios e mantém a pendência de recuperar
+as migrations V1/V2 originais antes de implantar no banco real.
+
+
+### Histórico visual dos hábitos
+
+As respostas de /habits e /habits/board incluem history: uma lista cronológica
+de até 30 objetos { date: YYYY-MM-DD, completed: boolean }. O servidor seleciona
+os 30 dias previstos mais recentes, até asOfDate, respeitando createdAt e a regra
+HabitMetrics.scheduled. Não há datas futuras, dias não previstos nem preenchimento
+anterior à criação. Um hábito novo pode ter histórico vazio até seu primeiro dia.
+
+A consistência conserva a janela dos últimos 30 dias civis e considera somente
+dias previstos nessa janela. O histórico visual pode cobrir mais de 30 dias civis
+quando a frequência é personalizada. Alterar a frequência usa a nova configuração
+para histórico e métricas; não há versionamento histórico de frequência.
+O frontend apenas formata as datas e os tooltips, usando asOfDate para “Hoje”.
+Nenhuma alteração de schema ou migration é necessária.
