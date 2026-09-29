@@ -49,7 +49,7 @@ class MultiUserSecurityTest {
     @ParameterizedTest
     @ValueSource(strings = {"/users/me", "/notes", "/goals", "/goals/board", "/events", "/planner/events",
             "/planner/availability?date=2026-09-15", "/event", "/habit", "/habit/planner?date=2026-09-15",
-            "/schedule/tasks/getTask", "/schedule/tasks/taskByDate", "/events/getEventCount",
+            "/events/getEventCount",
             "/event/getEventCount", "/weather?latitude=0&longitude=0"})
     void requiresAuthenticationAcrossFeatures(String path) throws Exception {
         mvc.perform(get(path)).andExpect(status().isUnauthorized());
@@ -125,23 +125,22 @@ class MultiUserSecurityTest {
         users.saveAndFlush(second);
 
         JsonNode note = create("/notes", "{\"title\":\"Private\",\"userId\":\"" + bob.id() + "\"}", alice, 201);
-        JsonNode task = create("/schedule/tasks", "{\"title\":\"Private\",\"userId\":\"" + bob.id() + "\"}", alice, 200);
         JsonNode legacyEvent = create("/event", "{\"name\":\"Private\"}", alice, 201);
         JsonNode event = create("/events", eventJson(), alice, 201);
         JsonNode habit = create("/habit", "{\"name\":\"Private\"}", alice, 201);
         JsonNode goal = create("/goals", GOAL, alice, 201);
-        for (JsonNode value : new JsonNode[]{note, task, legacyEvent, event, habit, goal}) {
+        for (JsonNode value : new JsonNode[]{note, legacyEvent, event, habit, goal}) {
             assertThat(value.path("userId").asString()).isEqualTo(alice.id());
         }
 
-        for (String path : new String[]{"/notes", "/schedule/tasks/getTask", "/event", "/events", "/planner/events",
+        for (String path : new String[]{"/notes", "/event", "/events", "/planner/events",
                 "/habit", "/habit/planner?date=2026-09-15", "/goals"}) {
             mvc.perform(auth(get(path).param("userId", alice.id()), bob))
                     .andExpect(status().isOk()).andExpect(content().json("[]"));
         }
-        for (String path : new String[]{"/schedule/tasks/taskByDate", "/event/getEventCount", "/events/getEventCount"}) {
+        for (String path : new String[]{"/event/getEventCount", "/events/getEventCount"}) {
             mvc.perform(auth(get(path), bob)).andExpect(status().isOk()).andExpect(content().string("0"));
-            mvc.perform(auth(get(path), alice)).andExpect(status().isOk()).andExpect(content().string(path.equals("/schedule/tasks/taskByDate") ? "0" : "1"));
+            mvc.perform(auth(get(path), alice)).andExpect(status().isOk()).andExpect(content().string("1"));
         }
         mvc.perform(auth(get("/goals/board").param("weekId", "2026-W38"), bob))
                 .andExpect(jsonPath("$.summary.total").value(0));
@@ -149,10 +148,6 @@ class MultiUserSecurityTest {
                 .andExpect(jsonPath("$.availableBlocks").value(24));
 
         mvc.perform(auth(delete("/notes/" + note.path("id").asString()), bob)).andExpect(status().isNotFound());
-        mvc.perform(auth(put("/schedule/tasks/" + task.path("id").asString())
-                .contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"Stolen\"}"), bob))
-                .andExpect(status().isNotFound());
-        mvc.perform(auth(delete("/schedule/tasks/" + task.path("id").asString()), bob)).andExpect(status().isNotFound());
         for (String prefix : new String[]{"/events/", "/planner/events/"}) {
             mvc.perform(auth(put(prefix + event.path("id").asString()).contentType(MediaType.APPLICATION_JSON)
                     .content(eventJson()), bob)).andExpect(status().isNotFound());
@@ -174,16 +169,12 @@ class MultiUserSecurityTest {
         assertThat(ownLegacy.path("id").asInt()).isNotEqualTo(legacyEvent.path("id").asInt());
         assertThat(ownLegacy.path("userId").asString()).isEqualTo(bob.id());
         mvc.perform(auth(get("/event"), alice)).andExpect(jsonPath("$[0].name").value("Private"));
-        mvc.perform(auth(get("/schedule/tasks/getTask"), alice)).andExpect(jsonPath("$[0].title").value("Private"));
+        mvc.perform(auth(get("/events"), alice)).andExpect(jsonPath("$[0].title").value("Private"));
         mvc.perform(auth(get("/goals/" + goal.path("id").asString()), alice)).andExpect(status().isOk());
 
         // Both users can book the same hour, but one user cannot book it twice.
         create("/planner/events", eventJson(), bob, 201);
         create("/planner/events", eventJson(), bob, 409);
-        mvc.perform(auth(put("/schedule/tasks/" + task.path("id").asString()).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"completed\":true,\"userId\":\"" + bob.id() + "\"}"), alice))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.userId").value(alice.id()));
-        mvc.perform(auth(delete("/schedule/tasks/" + task.path("id").asString()), alice)).andExpect(status().isNoContent());
         mvc.perform(auth(delete("/notes/" + note.path("id").asString()), alice)).andExpect(status().isNoContent());
         mvc.perform(auth(post("/habit/" + habit.path("id").asString() + "/completions/" + LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo")) + "/toggle"), alice))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.completedDates[0]").value(LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo")).toString()));
@@ -219,7 +210,7 @@ class MultiUserSecurityTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/users/register", "/users/login", "/users/123/role", "/notes", "/habit", "/event",
-            "/events", "/planner/events", "/goals", "/schedule/tasks"})
+            "/events", "/planner/events", "/goals"})
     void corsPreflightAllowsAuthorizationAcrossFeatures(String path) throws Exception {
         mvc.perform(options(path).header("Origin", "http://localhost:4200")
                         .header("Access-Control-Request-Method", path.endsWith("/role") ? "PATCH" : "POST")

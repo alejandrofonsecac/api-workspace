@@ -9,8 +9,6 @@ import com.workspace.api.planner.controller.PlannerController;
 import com.workspace.api.planner.service.PlannerService;
 import com.workspace.api.retention.repository.RetentionRepository;
 import com.workspace.api.retention.service.RetentionBatchService;
-import com.workspace.api.schedule.tasks.controller.TasksController;
-import com.workspace.api.schedule.tasks.service.TasksService;
 import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.user.security.RefreshCookie;
 import com.workspace.api.user.security.config.JwtConfiguration;
@@ -29,9 +27,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableAutoConfiguration
 @EntityScan("com.workspace.api")
 @EnableJpaRepositories("com.workspace.api")
-@Import({EventController.class, EventService.class, GoalsConfiguration.class,
+@Import({com.workspace.api.planner.controller.PlannerExceptionHandler.class, com.workspace.api.event.controller.CalendarController.class, com.workspace.api.event.service.CalendarQueryService.class, EventController.class, EventService.class, GoalsConfiguration.class,
         NoteController.class, NoteService.class, PlannerController.class, PlannerService.class,
-        TasksController.class, TasksService.class, CurrentUser.class, RefreshCookie.class,
+        CurrentUser.class, RefreshCookie.class,
         JwtConfiguration.class, SecurityConfiguration.class,
         RetentionRepository.class, RetentionBatchService.class, RetentionConfiguration.class})
 class RetentionTestConfiguration {

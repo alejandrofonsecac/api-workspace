@@ -49,7 +49,6 @@ class RetentionPostgresTest {
 
     private String table(Resource resource) {
         return switch (resource) {
-            case TASKS -> "tb_tasks";
             case EVENTS -> "events";
             case NOTES -> "tb_note";
         };
@@ -111,13 +110,13 @@ class RetentionPostgresTest {
 
     @Test
     void batchesCommitIndependentlyOfCallerRollback() {
-        insert(Resource.TASKS, 1, true, CUTOFF, false, null);
-        insert(Resource.TASKS, 2, true, CUTOFF, false, null);
+        insert(Resource.EVENTS, 1, true, CUTOFF, false, null);
+        insert(Resource.EVENTS, 2, true, CUTOFF, false, null);
         new TransactionTemplate(transactions).executeWithoutResult(status -> {
-            assertThat(batches.deleteBatch(Resource.TASKS, CUTOFF, 1)).isEqualTo(1);
+            assertThat(batches.deleteBatch(Resource.EVENTS, CUTOFF, 1)).isEqualTo(1);
             status.setRollbackOnly();
         });
-        assertThat(jdbc.queryForObject("select count(*) from tb_tasks", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from events", Integer.class)).isEqualTo(1);
     }
 
     @Test
@@ -126,7 +125,7 @@ class RetentionPostgresTest {
         try {
             Flyway.configure().dataSource(dataSource).schemas(schema).defaultSchema(schema).target("4").load().migrate();
             jdbc.update("insert into " + schema + ".tb_tasks(id,user_id,title,completed) values (1,?,'Legacy',true)", OWNER);
-            Flyway flyway = Flyway.configure().dataSource(dataSource).schemas(schema).defaultSchema(schema).load();
+            Flyway flyway = Flyway.configure().dataSource(dataSource).schemas(schema).defaultSchema(schema).target("5").load();
             flyway.migrate();
             flyway.validate();
             assertThat(jdbc.queryForObject("select completed from " + schema + ".tb_tasks where id=1", Boolean.class)).isTrue();

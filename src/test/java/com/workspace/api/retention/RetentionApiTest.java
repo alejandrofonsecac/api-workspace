@@ -28,6 +28,7 @@ class RetentionApiTest extends AuthenticatedTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired UserRepository users;
+    @Autowired com.workspace.api.event.repository.EventRepository events;
 
     private String payload(String route, String fields) {
         String base = route.equals("/events")
@@ -37,7 +38,7 @@ class RetentionApiTest extends AuthenticatedTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/schedule/tasks", "/events", "/notes"})
+    @ValueSource(strings = {"/events", "/notes"})
     void controlsCompletionOnServerAndPreservesRecurrenceAndOwnership(String route) throws Exception {
         String response = mvc.perform(post(route).contentType(MediaType.APPLICATION_JSON)
                         .content(payload(route, "\"completed\":true,\"isRecurring\":true,\"recurrenceRule\":\"FREQ=DAILY\",\"completedAt\":\"2000-01-01T00:00:00Z\"")))
@@ -65,14 +66,38 @@ class RetentionApiTest extends AuthenticatedTest {
     }
 
     @Test
-    void schedulingCarriesBothRecurrenceProtectionsToTheEvent() throws Exception {
-        String response = mvc.perform(post("/schedule/tasks").contentType(MediaType.APPLICATION_JSON)
-                        .content(payload("/schedule/tasks", "\"isRecurring\":true,\"recurrenceRule\":\"FREQ=WEEKLY\"")))
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        String id = json.readTree(response).path("id").asText();
-        mvc.perform(post("/planner/tasks/" + id + "/schedule").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"date\":\"2030-01-01\",\"startTime\":\"11:00\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.isRecurring").value(true))
-                .andExpect(jsonPath("$.recurrenceRule").value("FREQ=WEEKLY"));
+    void futureConflictRejectsEntireSeries() throws Exception {
+        mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON)
+                .content(payload("/events", "").replace("2030-01-01", "2030-01-08"))).andExpect(status().isCreated());
+        mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON)
+                .content(payload("/events", "\"isRecurring\":true,\"recurrenceRule\":\"FREQ=WEEKLY;UNTIL=20300115\"")))
+                .andExpect(status().isConflict());
+        assertThat(events.findAllByUserId(testUser.getId())).hasSize(1);
+    }
+
+    @Test
+    void eventsPersistAllDatesWithIndependentCompletion() throws Exception {
+        mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON)
+                .content(payload("/events", "\"completed\":true,\"isRecurring\":true,\"recurrenceRule\":\"FREQ=WEEKLY;UNTIL=20300115\"")))
+                .andExpect(status().isCreated());
+        var list = events.findByUserIdOrderByDateAscStartTimeAsc(testUser.getId());
+        assertThat(list).hasSize(3);
+        assertThat(list.get(0).getCompleted()).isTrue();
+        assertThat(list.get(1).getCompleted()).isFalse();
+        assertThat(list.get(1).getCompletedAt()).isNull();
+        assertThat(list.get(2).getDate()).isEqualTo(java.time.LocalDate.parse("2030-01-15"));
+        mvc.perform(get("/calendar/events"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].completed").value(true))
+                .andExpect(jsonPath("$[1].completed").value(false));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/events"})
+    void rejectsInvalidRecurrenceBeforeWriting(String route) throws Exception {
+        mvc.perform(post(route).contentType(MediaType.APPLICATION_JSON)
+                .content(payload(route, "\"dueDate\":\"2030-01-01\",\"isRecurring\":true,\"recurrenceRule\":\"FREQ=WEEKLY;UNTIL=20300230\"")))
+                .andExpect(status().isBadRequest());
+        assertThat(events.findAllByUserId(testUser.getId())).isEmpty();
     }
 }

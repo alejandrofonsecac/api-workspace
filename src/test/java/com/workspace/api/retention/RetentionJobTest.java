@@ -29,12 +29,11 @@ class RetentionJobTest {
 
     @Test
     void limitsDailyWorkAndContinuesOtherResourcesAfterFailure() {
-        when(batches.deleteBatch(Resource.TASKS, cutoff, 2)).thenReturn(2).thenThrow(new IllegalStateException("test failure"));
-        when(batches.deleteBatch(Resource.EVENTS, cutoff, 2)).thenReturn(2);
+        when(batches.deleteBatch(Resource.EVENTS, cutoff, 2)).thenReturn(2).thenThrow(new IllegalStateException("test failure"));
+        when(batches.deleteBatch(Resource.NOTES, cutoff, 2)).thenReturn(2);
         new RetentionJob(batches, clock, 2, 3).cleanCompletedItems();
-        verify(batches, times(2)).deleteBatch(Resource.TASKS, cutoff, 2);
-        verify(batches, times(3)).deleteBatch(Resource.EVENTS, cutoff, 2);
-        verify(batches).deleteBatch(Resource.NOTES, cutoff, 2);
+        verify(batches, times(2)).deleteBatch(Resource.EVENTS, cutoff, 2);
+        verify(batches, times(3)).deleteBatch(Resource.NOTES, cutoff, 2);
     }
 
     @Test

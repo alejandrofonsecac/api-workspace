@@ -3,7 +3,6 @@ package com.workspace.api.retention;
 import com.workspace.api.event.domain.Event;
 import com.workspace.api.note.domain.Note;
 import com.workspace.api.retention.domain.RetainedEntity;
-import com.workspace.api.schedule.tasks.domain.Tasks;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -13,7 +12,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RetentionLifecycleTest {
-    static Stream<RetainedEntity> resources() { return Stream.of(new Tasks(), new Event(), new Note()); }
+    static Stream<RetainedEntity> resources() { return Stream.of(new Event(), new Note()); }
 
     @ParameterizedTest
     @MethodSource("resources")
