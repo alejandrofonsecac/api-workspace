@@ -1,5 +1,7 @@
 package com.workspace.api.habit.controller;
 import com.workspace.api.habit.dto.HabitDraftDTO;
+import com.workspace.api.habit.dto.board.HabitBoardDTO;
+import com.workspace.api.habit.dto.board.HabitBoardViewDTO;
 import com.workspace.api.habit.service.HabitBoardService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -15,27 +17,27 @@ import java.util.List;
 public class HabitBoardController {
     private final HabitBoardService habits;
 
-    @GetMapping("/board") public HabitBoardService.Board board() {
+    @GetMapping("/board") public HabitBoardDTO board() {
         return habits.board();
     }
 
-    @GetMapping public List<HabitBoardService.View> list() {
+    @GetMapping public List<HabitBoardViewDTO> list() {
         return habits.board().habits();
     }
 
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
-    public HabitBoardService.View create(@Valid @RequestBody HabitDraftDTO draft) {
+    public HabitBoardViewDTO create(@Valid @RequestBody HabitDraftDTO draft) {
         return habits.create(draft);
     }
 
     @PutMapping("/{id}")
-    public HabitBoardService.View update(@PathVariable Integer id,@Valid @RequestBody HabitDraftDTO draft) {
+    public HabitBoardViewDTO update(@PathVariable Integer id,@Valid @RequestBody HabitDraftDTO draft) {
         return habits.update(id,draft);
     }
     public record StatusRequest(@NotNull @Pattern(regexp="active|paused") String status) {}
 
     @PutMapping("/{id}/status")
-    public HabitBoardService.View status(@PathVariable Integer id,@Valid @RequestBody StatusRequest request) {
+    public HabitBoardViewDTO status(@PathVariable Integer id,@Valid @RequestBody StatusRequest request) {
         return habits.status(id,request.status());
     }
 
@@ -45,4 +47,3 @@ public class HabitBoardController {
         habits.delete(id);
     }
 }
-

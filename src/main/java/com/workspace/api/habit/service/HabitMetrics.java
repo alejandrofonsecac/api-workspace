@@ -20,6 +20,24 @@ public class HabitMetrics {
         };
     }
 
+    public record HistoryDay(LocalDate date, boolean completed) {
+    }
+
+    public List<HistoryDay> history(Habit habit, LocalDate today) {
+        var history = new ArrayList<HistoryDay>();
+        // Thirty weekly occurrences fit in 210 calendar days. Bound the scan even
+        // for legacy custom schedules with no selected weekday.
+        var earliest = today.minusDays(209);
+        if (habit.getCreatedAt() != null && habit.getCreatedAt().isAfter(earliest))
+            earliest = habit.getCreatedAt();
+        for (var date = today; !date.isBefore(earliest) && history.size() < 30; date = date.minusDays(1)) {
+            if (scheduled(habit, date))
+                history.add(new HistoryDay(date, habit.getCompletedDates().contains(date)));
+        }
+        Collections.reverse(history);
+        return List.copyOf(history);
+    }
+
     public Metrics calculate(Habit habit, LocalDate today) {
         var dates = habit.getCompletedDates().stream().filter(date -> !date.isAfter(today) && scheduled(habit, date)).sorted().toList();
         int best = 0, run = 0;
