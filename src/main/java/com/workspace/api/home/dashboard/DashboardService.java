@@ -3,8 +3,8 @@ package com.workspace.api.home.dashboard;
 import com.workspace.api.planner.service.PlannerService;
 import com.workspace.api.habit.service.*;
 import com.workspace.api.habit.repository.HabitRepository;
-import com.workspace.api.schedule.tasks.domain.Tasks;
-import com.workspace.api.schedule.tasks.repository.TasksRepository;
+import com.workspace.api.event.domain.Event;
+import com.workspace.api.event.repository.EventRepository;
 import com.workspace.api.user.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class DashboardService {
     private final PlannerService planner;
-    private final TasksRepository tasks;
+    private final EventRepository events;
     private final HabitRepository habits;
     private final HabitMetrics metrics;
     private final HabitBoardService habitBoard;
@@ -31,7 +31,7 @@ public class DashboardService {
     public record DailyHabit(Integer id, String icon, String name, int completed, int target, int progress) {
     }
 
-    public record Summary(long completedTasks, long totalTasks, int highestCurrentStreak) {
+    public record Summary(long completedEvents, long totalEvents, int highestCurrentStreak) {
     }
 
     public record Dashboard(LocalDate date, PlannerService.DaySummary planner, Focus focus, List<DailyHabit> habits,
@@ -40,16 +40,16 @@ public class DashboardService {
 
     public Dashboard get() {
         var today = LocalDate.now(clock);
-        var dayTasks = tasks.findByUserIdAndDueDate(user.id(), today).stream().sorted(java.util.Comparator.comparing(Tasks::getId)).toList();
-        var focus = dayTasks.stream().filter(t -> !Boolean.TRUE.equals(t.getCompleted())).findFirst()
-                .map(t -> new Focus(t.getId(), t.getTitle(), t.getNotes(), 0)).orElse(null);
+        var dayEvents = events.findByUserIdAndDateOrderByStartTimeAsc(user.id(), today).stream().sorted(java.util.Comparator.comparing(Event::getId)).toList();
+        var focus = dayEvents.stream().filter(t -> !Boolean.TRUE.equals(t.getCompleted())).findFirst()
+                .map(t -> new Focus(t.getId(), t.getTitle(), t.getDescription(), 0)).orElse(null);
         var dailyHabits = habits.findAllByUserId(user.id()).stream()
                 .filter(h -> "active".equals(h.getStatus()) && metrics.scheduled(h, today)).map(h -> {
                     boolean completed = h.getCompletedDates().contains(today);
                     return new DailyHabit(h.getId(), h.getIcon(), h.getName(), completed ? 1 : 0, 1, completed ? 100 : 0);
                 }).toList();
         return new Dashboard(today, planner.summary(today), focus, dailyHabits,
-                new Summary(dayTasks.stream().filter(t -> Boolean.TRUE.equals(t.getCompleted())).count(), dayTasks.size(), habitBoard.board().summary().highestCurrentStreak()));
+                new Summary(dayEvents.stream().filter(t -> Boolean.TRUE.equals(t.getCompleted())).count(), dayEvents.size(), habitBoard.board().summary().highestCurrentStreak()));
     }
 }
 
