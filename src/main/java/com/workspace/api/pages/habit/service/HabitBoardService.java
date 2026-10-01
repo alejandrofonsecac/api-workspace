@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -28,12 +29,16 @@ public class HabitBoardService {
     private final Clock clock;
     private final HabitMetrics metrics;
 
+    public List<HabitBoardViewDTO> views() {
+        return habits.findAllByUserId(currentUser.id()).stream().map(this::view).toList();
+    }
+
     public HabitBoardDTO board() {
-        var views = habits.findAllByUserId(currentUser.id()).stream().map(this::view).toList();
+        var views = views();
         return new HabitBoardDTO(views, new HabitBoardSummaryDTO(
                 views.stream()
                         .filter(v ->
-                                "active".equals(v.status())).count(),
+                                Habit.ACTIVE.equals(v.status())).count(),
                 views.stream().mapToInt(v ->
                         v.metrics().currentStreak()).max().orElse(0),
                 views.stream().mapToInt(v ->
@@ -72,7 +77,7 @@ public class HabitBoardService {
 
     @Transactional
     public HabitBoardViewDTO status(Integer id, String status) {
-        if (!"active".equals(status) && !"paused".equals(status)) {
+        if (!Habit.ACTIVE.equals(status) && !Habit.PAUSED.equals(status)) {
             throw invalid("Invalid habit status");
         }
         var habit = find(id);

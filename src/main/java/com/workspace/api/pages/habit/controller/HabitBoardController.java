@@ -22,7 +22,7 @@ public class HabitBoardController {
     }
 
     @GetMapping public List<HabitBoardViewDTO> list() {
-        return habits.board().habits();
+        return habits.views();
     }
 
     @PostMapping @ResponseStatus(HttpStatus.CREATED)

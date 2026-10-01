@@ -28,9 +28,9 @@ public class PlannerService {
     }
 
     public DaySummary summary(LocalDate date) {
-        var dayEvents = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), date).stream()
-                .map(EventResponseDTO::new).toList();
-        var availability = events.getAvailability(date);
+        var entities = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), date);
+        var dayEvents = entities.stream().map(EventResponseDTO::new).toList();
+        var availability = events.getAvailability(date, entities);
         var today = LocalDate.now(clock);
         var next = dayEvents.stream()
                 .filter(event ->
@@ -43,10 +43,7 @@ public class PlannerService {
                 .orElse(null);
 
         return new DaySummary(date, dayEvents, availability,
-                eventRepository.findAllByUserId(currentUser.id()).stream()
-                        .filter(event ->
-                                event.getDate() == null)
-                        .count(),
+                eventRepository.countByUserIdAndDateIsNull(currentUser.id()),
                 dayEvents.size(), availability.occupiedBlocks() * 60, availability.availableBlocks() * 60,
                 (int) Math.round(availability.availableBlocks() * 100.0 / availability.totalBlocks()), next);
     }

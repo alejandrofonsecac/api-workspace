@@ -1,6 +1,5 @@
 package com.workspace.api.pages.home.dashboard;
 
-import com.workspace.api.pages.habit.service.HabitBoardService;
 import com.workspace.api.pages.habit.service.HabitMetrics;
 import com.workspace.api.pages.planner.service.PlannerService;
 import com.workspace.api.pages.habit.repository.HabitRepository;
@@ -22,7 +21,6 @@ public class DashboardService {
     private final EventRepository events;
     private final HabitRepository habits;
     private final HabitMetrics metrics;
-    private final HabitBoardService habitBoard;
     private final CurrentUser user;
     private final Clock clock;
 
@@ -44,13 +42,14 @@ public class DashboardService {
         var dayEvents = events.findByUserIdAndDateOrderByStartTimeAsc(user.id(), today).stream().sorted(java.util.Comparator.comparing(Event::getId)).toList();
         var focus = dayEvents.stream().filter(t -> !Boolean.TRUE.equals(t.getCompleted())).findFirst()
                 .map(t -> new Focus(t.getId(), t.getTitle(), t.getDescription(), 0)).orElse(null);
-        var dailyHabits = habits.findAllByUserId(user.id()).stream()
-                .filter(h -> "active".equals(h.getStatus()) && metrics.scheduled(h, today)).map(h -> {
+        var allHabits = habits.findAllByUserId(user.id());
+        var dailyHabits = allHabits.stream()
+                .filter(h -> h.active() && metrics.scheduled(h, today)).map(h -> {
                     boolean completed = h.getCompletedDates().contains(today);
                     return new DailyHabit(h.getId(), h.getIcon(), h.getName(), completed ? 1 : 0, 1, completed ? 100 : 0);
                 }).toList();
         return new Dashboard(today, planner.summary(today), focus, dailyHabits,
-                new Summary(dayEvents.stream().filter(t -> Boolean.TRUE.equals(t.getCompleted())).count(), dayEvents.size(), habitBoard.board().summary().highestCurrentStreak()));
+                new Summary(dayEvents.stream().filter(t -> Boolean.TRUE.equals(t.getCompleted())).count(), dayEvents.size(), allHabits.stream().mapToInt(h -> metrics.calculate(h, today).currentStreak()).max().orElse(0)));
     }
 }
 

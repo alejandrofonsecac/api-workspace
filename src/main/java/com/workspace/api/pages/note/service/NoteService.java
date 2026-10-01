@@ -5,20 +5,22 @@ import com.workspace.api.pages.note.domain.Note;
 import com.workspace.api.pages.note.dto.NoteRequestDTO;
 import com.workspace.api.pages.note.dto.NoteResponseDTO;
 import com.workspace.api.pages.note.repository.NoteRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NoteService {
     private final NoteRepository noteRepository;
     private final CurrentUser currentUser;
-    private final java.time.Clock clock;
+    private final Clock clock;
 
     public List<NoteResponseDTO> findAllNotes(){
         return noteRepository.findAllByUserId(currentUser.id()).stream()
@@ -33,10 +35,10 @@ public class NoteService {
         note.setUserId(currentUser.id());
         note.setTitle(request.title());
         note.setDescription(request.description());
-        note.setEdited(java.time.LocalDateTime.now(clock));
+        note.setEdited(LocalDateTime.now(clock));
         note.setFavourite(Boolean.TRUE.equals(request.favourite()));
         note.setFixed(Boolean.TRUE.equals(request.fixed()));
-        note.setFixedAt(Boolean.TRUE.equals(request.fixed()) ? java.time.LocalDateTime.now(clock) : null);
+        note.setFixedAt(Boolean.TRUE.equals(request.fixed()) ? LocalDateTime.now(clock) : null);
 
         note.updateRetention(request.completed(), request.isRecurring(), request.recurrenceRule(), clock.instant());
 
@@ -54,9 +56,9 @@ public class NoteService {
         if (request.favourite() != null) note.setFavourite(request.favourite());
         if (request.fixed() != null && !request.fixed().equals(note.getFixed())) {
             note.setFixed(request.fixed());
-            note.setFixedAt(request.fixed() ? java.time.LocalDateTime.now(clock) : null);
+            note.setFixedAt(request.fixed() ? LocalDateTime.now(clock) : null);
         }
-        note.setEdited(java.time.LocalDateTime.now(clock));
+        note.setEdited(LocalDateTime.now(clock));
         note.updateRetention(request.completed(), request.isRecurring(), request.recurrenceRule(), clock.instant());
         return new NoteResponseDTO(noteRepository.save(note));
     }

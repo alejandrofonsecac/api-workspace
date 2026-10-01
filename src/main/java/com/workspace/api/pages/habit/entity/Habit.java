@@ -21,7 +21,10 @@ public class Habit extends UserOwnedEntity {
     private String name;
     private String icon = "self_improvement";
     private String frequencyType = "daily";
-    private String status = "active";
+    public static final String ACTIVE = "active";
+    public static final String PAUSED = "paused";
+
+    private String status = ACTIVE;
     private java.time.LocalTime time;
     private LocalDate createdAt;
     @ElementCollection
@@ -45,4 +48,8 @@ public class Habit extends UserOwnedEntity {
             uniqueConstraints = @UniqueConstraint(columnNames = {"habit_id", "completed_date"}))
     @Column(name = "completed_date", nullable = false)
     private Set<LocalDate> completedDates = new HashSet<>();
+
+    public boolean active() {
+        return ACTIVE.equals(status);
+    }
 }

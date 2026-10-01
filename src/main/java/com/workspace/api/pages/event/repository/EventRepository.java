@@ -27,5 +27,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findByUserIdAndDateOrderByStartTimeAsc(String userId, LocalDate date);
 
+    List<Event> findByUserIdAndDateBetweenOrderByStartTimeAsc(String userId, LocalDate from, LocalDate to);
+
+    List<Event> findByUserIdAndDateIsNotNullOrderByDateAscStartTimeAsc(String userId);
+
     long countByUserIdAndDate(String userId, LocalDate date);
+
+    long countByUserIdAndDateIsNull(String userId);
 }

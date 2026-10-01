@@ -39,9 +39,10 @@ public class EventService {
     public EventResponseDTO create(EventRequestDTO request) {
         lockCalendar();
         var dates = RecurrencePolicy.dates(request.date(), request.isRecurring(), request.recurrenceRule());
+        var existing = existingByDate(dates);
         // Validate every date under the user lock before creating any occurrence.
         for (var date : dates){
-            validate(onDate(request, date, false), null);
+            validate(onDate(request, date, false), null, existing.getOrDefault(date, List.of()));
         }
 
         Event first = null;
@@ -60,7 +61,9 @@ public class EventService {
     public EventResponseDTO update(Long id, EventRequestDTO request) {
         lockCalendar();
         Event event = find(id);
-        validate(request, id);
+        RecurrencePolicy.dates(request.date(), request.isRecurring(), request.recurrenceRule());
+        validate(request, id, request.date() == null ? List.of()
+                : eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), request.date()));
         apply(event, request);
         return new EventResponseDTO(eventRepository.saveAndFlush(event));
     }
@@ -77,8 +80,10 @@ public class EventService {
     }
 
     public PlannerAvailabilityResponseDTO getAvailability(LocalDate date) {
-        List<Event> events = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), date);
+        return getAvailability(date, eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), date));
+    }
 
+    public PlannerAvailabilityResponseDTO getAvailability(LocalDate date, List<Event> events) {
         List<PlannerSlotDTO> slots = IntStream.range(0, 24).mapToObj(hour -> {
             boolean occupied = events.stream()
                     .filter(event ->
@@ -104,19 +109,25 @@ public class EventService {
         return eventRepository.findForUpdateByIdAndUserId(id, currentUser.id()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
     }
 
-    private void validate(EventRequestDTO request, Long ignoredId) {
+    // One query for the whole recurrence window instead of one per occurrence.
+    private Map<LocalDate, List<Event>> existingByDate(List<LocalDate> dates) {
+        if (dates.isEmpty() || dates.getFirst() == null) return Collections.emptyMap();
+        return eventRepository.findByUserIdAndDateBetweenOrderByStartTimeAsc(
+                        currentUser.id(), dates.getFirst(), dates.getLast()).stream()
+                .collect(java.util.stream.Collectors.groupingBy(Event::getDate));
+    }
+
+    private void validate(EventRequestDTO request, Long ignoredId, List<Event> sameDayEvents) {
         if ((request.date() == null && request.startTime() != null) || !EventTimes.valid(request.startTime(), request.endTime())){
             throw new InvalidPlannerSlotException("Use an increasing interval between 00:00 and 24:00.");
         }
-
-        RecurrencePolicy.dates(request.date(), request.isRecurring(), request.recurrenceRule());
 
         if (request.startTime() == null || request.endTime() == null) return;
 
         int start = EventTimes.startMinutes(request.startTime());
         int end = EventTimes.endMinutes(EventTimes.parseEnd(request.endTime()));
 
-        boolean occupied = eventRepository.findByUserIdAndDateOrderByStartTimeAsc(currentUser.id(), request.date()).stream()
+        boolean occupied = sameDayEvents.stream()
                 .filter(event ->
                         event.getStartTime() != null && event.getEndTime() != null)
                 .anyMatch(event ->

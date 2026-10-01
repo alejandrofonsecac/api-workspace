@@ -6,7 +6,7 @@ import com.workspace.api.pages.habit.dto.HabitResponseDTO;
 import com.workspace.api.pages.habit.dto.PlannerHabitDTO;
 import com.workspace.api.pages.habit.entity.Habit;
 import com.workspace.api.pages.habit.repository.HabitRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,10 +18,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class HabitService {
-    private HabitRepository habitRepository;
+    private final HabitRepository habitRepository;
     private final CurrentUser currentUser;
     private final Clock clock;
     private final HabitMetrics metrics;
@@ -60,7 +60,7 @@ public class HabitService {
         Habit habit = habitRepository.findLockedByIdAndUserId(id, currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Habit not found: " + id));
 
-        if (date.isAfter(LocalDate.now(clock)) || !metrics.scheduled(habit, date) || !"active".equals(habit.getStatus()))
+        if (date.isAfter(LocalDate.now(clock)) || !metrics.scheduled(habit, date) || !habit.active())
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Habit cannot be completed on this date");
         if (!habit.getCompletedDates().remove(date)) {
             habit.getCompletedDates().add(date);
@@ -71,7 +71,7 @@ public class HabitService {
 
     public List<PlannerHabitDTO> plannerHabits(LocalDate date) {
         return habitRepository.findAllByUserId(currentUser.id()).stream()
-                .filter(habit -> "active".equals(habit.getStatus()) && metrics.scheduled(habit, date))
+                .filter(habit -> habit.active() && metrics.scheduled(habit, date))
                 .map(habit -> new PlannerHabitDTO(habit.getId(), habit.getUserId(), habit.getName(), habit.getCompletedDates().contains(date)))
                 .toList();
     }
