@@ -4,7 +4,6 @@ import com.workspace.api.pages.event.dto.EventResponseDTO;
 import com.workspace.api.pages.event.repository.EventRepository;
 import com.workspace.api.pages.event.service.EventService;
 import com.workspace.api.pages.planner.dto.PlannerAvailabilityResponseDTO;
-import com.workspace.api.planner.dto.*;
 import com.workspace.api.user.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

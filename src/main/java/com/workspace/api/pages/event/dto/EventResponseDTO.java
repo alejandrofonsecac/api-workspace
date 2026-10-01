@@ -1,7 +1,6 @@
 package com.workspace.api.pages.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.workspace.api.event.domain.*;
 import com.workspace.api.pages.event.domain.Event;
 import com.workspace.api.pages.event.domain.EventCategory;
 import com.workspace.api.pages.event.domain.EventSource;

@@ -11,8 +11,6 @@ import com.workspace.api.pages.planner.exception.OccupiedPlannerSlotException;
 import com.workspace.api.user.security.CurrentUser;
 import com.workspace.api.recurrence.RecurrencePolicy;
 import com.workspace.api.user.repository.UserRepository;
-import com.workspace.api.event.domain.*;
-import com.workspace.api.event.dto.*;
 import com.workspace.api.pages.event.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -18,13 +18,13 @@ public final class RecurrencePolicy {
     }
 
     public static List<LocalDate> dates(LocalDate start, Boolean recurring, String rule) {
+        if (rule == null || rule.isBlank()){
+            return Collections.singletonList(start);
+        }
+
         var matcher = RULE.matcher(rule.trim());
         var result = new ArrayList<LocalDate>();
         LocalDate until;
-
-        if (rule.isBlank()){
-            return Collections.singletonList(start);
-        }
 
         if (!matcher.matches()){
             throw invalid("Unsupported recurrence rule");
