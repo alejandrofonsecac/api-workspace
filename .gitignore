@@ -14,9 +14,6 @@ target/
 
 ### Developer
 .env
-.docs/*
-!.docs/retention/
-!.docs/BUSINESS_RULES.md
 
 ### IntelliJ IDEA ###
 .idea
