@@ -25,10 +25,12 @@ Toda a documentação complementar está em [`.docs`](.docs):
 
 | Tema | Documento |
 | --- | --- |
-| Diretrizes de desenvolvimento | [`.docs/development/AGENTS.md`](.docs/development/AGENTS.md) |
+| Diretrizes de desenvolvimento | [`AGENTS.md`](AGENTS.md) |
+| Executar a API | [`.docs/SETUP.md`](.docs/SETUP.md) |
 | Autenticação e sessões | [`.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md`](.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md) |
 | Configuração do JWT | [`.docs/authentication/JWT_CONFIGURATION.md`](.docs/authentication/JWT_CONFIGURATION.md) |
 | Regras e contratos de negócio | [`.docs/business-rules/BUSINESS_RULES.md`](.docs/business-rules/BUSINESS_RULES.md) |
+| Retenção automática | [`.docs/retention/README.md`](.docs/retention/README.md) |
 | Operação da API | [`.docs/operations/API_OPERATION.md`](.docs/operations/API_OPERATION.md) |
 | Relatórios técnicos | [`.docs/reports`](.docs/reports) |
 | Histórico de metas | [`.docs/goals`](.docs/goals) |

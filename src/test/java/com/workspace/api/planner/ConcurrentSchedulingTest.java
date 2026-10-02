@@ -1,11 +1,11 @@
 package com.workspace.api.planner;
 
-import com.workspace.api.event.domain.EventCategory;
-import com.workspace.api.event.domain.EventSource;
-import com.workspace.api.event.dto.EventRequestDTO;
-import com.workspace.api.event.service.EventService;
-import com.workspace.api.event.repository.EventRepository;
-import com.workspace.api.planner.exception.OccupiedPlannerSlotException;
+import com.workspace.api.pages.event.domain.EventCategory;
+import com.workspace.api.pages.event.domain.EventSource;
+import com.workspace.api.pages.event.dto.EventRequestDTO;
+import com.workspace.api.pages.event.service.EventService;
+import com.workspace.api.pages.event.repository.EventRepository;
+import com.workspace.api.pages.planner.exception.OccupiedPlannerSlotException;
 import com.workspace.api.user.domain.User;
 import com.workspace.api.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;

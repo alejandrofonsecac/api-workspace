@@ -1,7 +1,7 @@
 package com.workspace.api.notes;
 
-import com.workspace.api.note.domain.Note;
-import com.workspace.api.note.repository.NoteRepository;
+import com.workspace.api.pages.note.domain.Note;
+import com.workspace.api.pages.note.repository.NoteRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

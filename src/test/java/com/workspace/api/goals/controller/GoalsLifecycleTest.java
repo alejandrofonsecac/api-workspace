@@ -1,7 +1,7 @@
 package com.workspace.api.goals.controller;
 
-import com.workspace.api.goals.entity.Goals;
-import com.workspace.api.goals.repository.GoalsRepository;
+import com.workspace.api.pages.goals.entity.Goals;
+import com.workspace.api.pages.goals.repository.GoalsRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

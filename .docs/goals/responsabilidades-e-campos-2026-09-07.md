@@ -57,7 +57,7 @@ Declarar `getAll<GoalApiResponse>()` não faz o Angular converter `name` para `t
 
 Manter tipos TypeScript alinhados aos DTOs Java é adequado mesmo com um backend responsável pelas regras. A duplicação a eliminar é a divergência desnecessária de nomes e valores. Opcionalmente, os tipos podem ser gerados a partir de um contrato OpenAPI; isso seria uma melhoria futura, não algo instalado nesta solução.
 
-**Onde cada campo da entidade é usado.** A entrada passa por [GoalsController](../../src/main/java/com/workspace/api/goals/controller/GoalsController.java), recebe validação com `@Valid`, chega a [GoalsService](../../src/main/java/com/workspace/api/goals/service/GoalsService.java), é aplicada à entidade e salva pelo repositório. A resposta é construída em [GoalsResponseDTO](../../src/main/java/com/workspace/api/goals/dto/GoalsResponseDTO.java).
+**Onde cada campo da entidade é usado.** A entrada passa por [GoalsController](../../src/main/java/com/workspace/api/pages/goals/controller/GoalsController.java), recebe validação com `@Valid`, chega a [GoalsService](../../src/main/java/com/workspace/api/pages/goals/service/GoalsService.java), é aplicada à entidade e salva pelo repositório. A resposta é construída em [GoalsResponseDTO](../../src/main/java/com/workspace/api/pages/goals/dto/GoalsResponseDTO.java).
 
 | Campo da entidade | Caminho e uso atual | É necessário? Onde deve ficar? |
 | --- | --- | --- |
@@ -98,7 +98,7 @@ Esses campos já existiam no modelo visual. Eu preservei esse modelo e completei
 
 Exemplo concreto: `GoalService.complete()` coloca `CONCLUIDA` e `completedAt` no objeto local, mas `toGoalRequest()` não envia esses campos e o backend não os persiste. A tela pode mostrar a conclusão após um PUT bem-sucedido e perdê-la em uma recarga completa. No adiamento, a semana agora é persistida; o contador de adiamentos continua apenas local. O foco semanal também é salvo somente em um signal do frontend.
 
-O cálculo de progresso já existia em `goal-progress.ts` e continua no frontend. Ele conta tarefas concluídas ou datas de execução do hábito. Entretanto, [HabitResponseDTO](../../src/main/java/com/workspace/api/habit/dto/HabitResponseDTO.java) não retorna `completedDates`, informação esperada por esse cálculo. Persistir `habitTargetCount` não resolve a origem das execuções. O backend precisa definir de onde elas vêm e devolver o progresso calculado, se essa funcionalidade for mantida.
+O cálculo de progresso já existia em `goal-progress.ts` e continua no frontend. Ele conta tarefas concluídas ou datas de execução do hábito. Entretanto, [HabitResponseDTO](../../src/main/java/com/workspace/api/pages/habit/dto/HabitResponseDTO.java) não retorna `completedDates`, informação esperada por esse cálculo. Persistir `habitTargetCount` não resolve a origem das execuções. O backend precisa definir de onde elas vêm e devolver o progresso calculado, se essa funcionalidade for mantida.
 
 **Divisão de responsabilidades que recomendo para este projeto.**
 

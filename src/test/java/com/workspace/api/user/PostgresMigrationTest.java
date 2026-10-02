@@ -32,7 +32,7 @@ class PostgresMigrationTest {
     @Test
     void freshDatabaseMigratesAndPassesHibernateValidation() {
         assertThat(jdbc.queryForObject("select enabled from tb_users where id = ?", Boolean.class, LEGACY_ID)).isFalse();
-        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(7);
     }
 
     @Test
@@ -60,12 +60,16 @@ class PostgresMigrationTest {
             Flyway.configure().dataSource(dataSource).schemas(schema).defaultSchema(schema)
                     .baselineOnMigrate(true).baselineVersion("0").load().migrate();
 
-            for (String table : new String[]{"tb_note", "tb_tasks", "tb_event", "events", "tb_habit", "tb_goals", "tb_goal_focus"}) {
+            for (String table : new String[]{"tb_note", "tb_event", "tb_habit", "tb_goals", "tb_goal_focus"}) {
                 try (var result = statement.executeQuery("select user_id from " + table)) {
                     assertThat(result.next()).isTrue();
                     assertThat(result.getString(1)).isEqualTo(LEGACY_ID);
                     assertThat(result.next()).isFalse();
                 }
+            }
+            try (var result = statement.executeQuery("select count(*) from events where user_id='" + LEGACY_ID + "'")) {
+                result.next();
+                assertThat(result.getInt(1)).isEqualTo(2);
             }
             try (var result = statement.executeQuery("select count(*) from tb_habit_completions")) {
                 result.next();

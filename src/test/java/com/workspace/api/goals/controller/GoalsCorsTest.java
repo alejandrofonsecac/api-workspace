@@ -1,7 +1,8 @@
 package com.workspace.api.goals.controller;
 
 import com.workspace.api.config.CorsConfig;
-import com.workspace.api.goals.service.GoalsService;
+import com.workspace.api.pages.goals.controller.GoalsController;
+import com.workspace.api.pages.goals.service.GoalsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;

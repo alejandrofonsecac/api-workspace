@@ -1,8 +1,8 @@
 package com.workspace.api.home.weather.repository;
 
-import com.workspace.api.home.weather.dto.WeatherResponseDTO;
-import com.workspace.api.home.weather.service.WeatherService;
-import com.workspace.api.home.weather.validation.WeatherValidator;
+import com.workspace.api.pages.home.weather.dto.WeatherResponseDTO;
+import com.workspace.api.pages.home.weather.service.WeatherService;
+import com.workspace.api.pages.home.weather.validation.WeatherValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;

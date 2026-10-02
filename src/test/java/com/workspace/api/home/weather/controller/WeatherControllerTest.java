@@ -1,8 +1,9 @@
 package com.workspace.api.home.weather.controller;
 
 import com.workspace.api.config.CorsConfig;
-import com.workspace.api.home.weather.dto.WeatherResponseDTO;
-import com.workspace.api.home.weather.service.WeatherService;
+import com.workspace.api.pages.home.weather.controller.WeatherController;
+import com.workspace.api.pages.home.weather.dto.WeatherResponseDTO;
+import com.workspace.api.pages.home.weather.service.WeatherService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
