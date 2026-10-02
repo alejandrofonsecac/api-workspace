@@ -1,4 +1,4 @@
-package com.workspace.api.event.validation;
+package com.workspace.api.pages.event.validation;
 
 import jakarta.validation.Constraint;
 
