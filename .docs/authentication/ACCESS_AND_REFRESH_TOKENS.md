@@ -83,27 +83,42 @@ Logout global está disponível na API, sem novo botão nesta entrega.
 
 ## Angular
 
-AuthSession mantém a identidade e o token em memória. Ao expirar o access token,
-a próxima requisição renova a sessão; um 401 também provoca uma única renovação e
-uma única repetição da requisição original. Requisições simultâneas compartilham o
-refresh; um 401 atrasado usa o token mais recente. Falha na renovação ou outro 401
-encerra a sessão com navegação completa para /login?reason=expired, limpando caches.
-403 e 5xx de recursos não são tratados como expiração.
+O consumo está em `plannerFyFront/src/app/core/auth` e descrito em
+`plannerFyFront/docs/AUTHENTICATION.md`. Com JWT_TTL=PT15M, **o frontend precisa
+chamar /users/refresh**; sem isso a sessão visual termina a cada 15 minutos.
 
-O inicializador restaura a sessão via cookie ao abrir a aplicação. Ausência de
-sessão nessa tentativa inicial mantém o visitante anônimo, sem loop de redireção.
-Guards esperam a renovação quando a identidade existe e o access token expirou.
+| Arquivo | Responsabilidade |
+| --- | --- |
+| `data-access/session-api.service.ts` | POST /users/refresh e /users/logout com header de sessão e credenciais |
+| `session/auth-session.service.ts` | Identidade e token em memória, renovação compartilhada, restauração e logout |
+| `http/auth.interceptor.ts` | Bearer só para a API, renovação e repetição única após 401 |
+| `routing/auth.guard.ts` | Rotas privadas aguardam a renovação quando o token venceu |
+| `app.config.ts` | `provideAppInitializer` restaura a sessão pelo cookie ao abrir a aplicação |
 
-Web Locks serializa refresh/logout entre abas da mesma origem quando disponível.
-Sem Web Locks, a concorrência é agrupada dentro de cada aba; uma colisão entre abas
-pode acionar a revogação conservadora por reuso e exigir login. Não há janela que
-reaceite tokens usados. Troca de conta detectada na renovação encerra a sessão
-antes de repetir requisições da conta anterior. Credenciais não são enviadas para
-origens ou caminhos fora da API configurada.
+AuthSession mantém a identidade e o token em memória. O token é considerado vencido
+30 segundos antes de expiresIn; a próxima requisição renova a sessão antes do envio.
+Um 401 provoca uma única renovação e uma única repetição da requisição original.
+Requisições simultâneas compartilham o refresh; um 401 atrasado usa o token mais
+recente da mesma conta. Refresh com 401 ou nova 401 após a repetição encerra a sessão
+com navegação completa para /login?reason=expired, limpando caches.
+403, 5xx, timeout e falha de rede não são tratados como expiração.
+
+O inicializador restaura a sessão via cookie ao abrir ou recarregar a aplicação.
+Ausência de sessão nessa tentativa inicial mantém o visitante anônimo, sem loop de
+redireção. Guards esperam a renovação quando a identidade existe e o access token venceu.
+
+Web Locks (`plannerfy-auth-session`) serializa refresh/logout entre abas da mesma
+origem quando disponível. Sem Web Locks, a concorrência é agrupada dentro de cada aba;
+uma colisão entre abas pode acionar a revogação conservadora por reuso e exigir login.
+Não há janela que reaceite tokens usados. Troca de conta detectada na renovação
+encerra a sessão antes de repetir requisições da conta anterior. Credenciais não são
+enviadas para origens ou caminhos fora da API configurada.
 
 Logout aguarda uma rotação pendente antes de revogar o cookie mais recente.
 Falha de logout é exibida na interface e permite tentar novamente; não simula
-revogação bem-sucedida. Não há tokens em localStorage/sessionStorage nem leitura
+revogação bem-sucedida. Logout em uma aba não encerra imediatamente as demais: elas
+seguem até o access token vencer e são levadas ao login na renovação seguinte.
+logout-all não tem botão. Não há tokens em localStorage/sessionStorage nem leitura
 de cookies por JavaScript.
 
 ## Execução e implantação
@@ -132,7 +147,12 @@ A política de rotação, reuso e inatividade segue
 
 ## Validação desta alteração
 
-- Frontend: 102 testes passaram; lint e build de produção passaram.
+- Frontend: a integração descrita na seção Angular foi concluída em 2026-10-08
+  (branch `JWT-Token-correction` do plannerFyFront). Até então o Angular não chamava
+  /users/refresh nem /users/logout, e a redução de JWT_TTL para PT15M encerrava a
+  sessão a cada 15 minutos. Validação: 36 testes de autenticação passaram; lint e
+  build de produção passaram. A suíte completa tem 1 falha preexistente, fora da
+  autenticação (`home-dashboard.service.spec.ts`).
 - Backend: 9 testes de fluxo passaram em H2 e novamente em PostgreSQL 18 temporário;
   2 testes de HTTPS/cookie e 6 testes de configuração JWT passaram.
 - RefreshMigrationTest validou V4 e suas restrições em PostgreSQL temporário.
