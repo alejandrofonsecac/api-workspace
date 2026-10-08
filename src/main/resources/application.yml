@@ -32,5 +32,10 @@ app:
   refresh:
     max-age: ${REFRESH_MAX_AGE:P90D}
     idle-timeout: ${REFRESH_IDLE_TIMEOUT:P30D}
+    cleanup:
+      enabled: ${REFRESH_CLEANUP_ENABLED:true}
+      cron: ${REFRESH_CLEANUP_CRON:0 30 3 * * *}
+      batch-size: ${REFRESH_CLEANUP_BATCH_SIZE:500}
+      max-batches: ${REFRESH_CLEANUP_MAX_BATCHES:100}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}

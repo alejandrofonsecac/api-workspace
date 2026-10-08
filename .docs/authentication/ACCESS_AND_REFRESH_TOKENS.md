@@ -28,9 +28,23 @@ família inteira, incluindo seus descendentes. Outras sessões não são revogad
 Essa revogação é confirmada no banco mesmo quando a resposta é 401.
 Tokens vencidos e usuários desativados também não renovam.
 
-Os hashes consumidos são retidos para detectar reuso. Uma futura rotina de limpeza
-só deve remover famílias depois de absolute_expires_at; não remover hashes usados
-enquanto a família puder estar ativa. Esta entrega não agenda limpeza automática.
+Os hashes consumidos são retidos para detectar reuso enquanto a família puder estar
+ativa. RefreshTokenCleanupJob remove diariamente apenas as linhas cujo
+absolute_expires_at passou há mais de 1 dia (margem para diferença de relógio entre
+instâncias). Como todas as linhas de uma família compartilham esse limite, só saem
+famílias que já não podem renovar; tokens apenas inativos (expires_at vencido) ou
+revogados de famílias ainda dentro do limite permanecem. A exclusão ocorre em lotes
+com transação própria e SKIP LOCKED, com limite de lotes por execução; o restante
+fica para a próxima. O índice idx_refresh_absolute_expiry (V8) sustenta a consulta.
+
+| Variável | Padrão | Efeito |
+| --- | --- | --- |
+| REFRESH_CLEANUP_ENABLED | true | false remove o job do contexto |
+| REFRESH_CLEANUP_CRON | 0 30 3 * * * | Horário no fuso app.time-zone (após a retenção das 3h) |
+| REFRESH_CLEANUP_BATCH_SIZE | 500 | Linhas por lote (1 a 10000) |
+| REFRESH_CLEANUP_MAX_BATCHES | 100 | Lotes máximos por execução |
+
+O perfil test desativa o job; RefreshTokenCleanupTest o executa diretamente.
 
 ## Contrato HTTP
 
