@@ -150,6 +150,10 @@ Não use a chave pública do perfil de testes na aplicação.
 | `JWT_ISSUER` | Padrão `workspace-api`; deve ser igual na emissão e verificação |
 | `JWT_TTL` | Padrão `PT15M`; duração de 15 minutos, no formato ISO-8601 |
 
+O cliente precisa renovar o access token por `POST /users/refresh` quando ele vence
+(`JWT_TTL`); o Angular faz isso automaticamente. Aumentar `JWT_TTL` não corrige
+sessões que terminam cedo: só amplia a janela em que um JWT revogado continua aceito.
+
 Mantenha a chave entre reinicializações para continuar aceitando tokens válidos já emitidos.
 Se houver várias instâncias da mesma API, elas precisam compartilhar a chave e o emissor.
 Trocar a chave invalida os tokens assinados com a anterior.
