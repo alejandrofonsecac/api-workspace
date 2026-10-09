@@ -1,0 +1,10 @@
+# Render web service. Activate together with production: SPRING_PROFILES_ACTIVE=production,render
+# Render terminates TLS in its proxy and forwards plain HTTP from its private network.
+server:
+  address: 0.0.0.0
+  port: ${PORT:10000}
+  tomcat:
+    remoteip:
+      # The container is reachable only through Render's proxy; trust private and loopback peers only.
+      # Render does not publish its proxy range: a 426 HTTPS_REQUIRED on login means the peer is outside it.
+      internal-proxies: '10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|::1|0:0:0:0:0:0:0:1'
