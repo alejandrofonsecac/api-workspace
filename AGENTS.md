@@ -119,6 +119,21 @@ Se a lógica precisar antecipar uma regra de negócio, registre a razão junto a
 - Cache de dados privados deve respeitar a sessão e ser invalidado ao sair ou trocar de conta. Preferências visuais podem usar armazenamento local; ele não é a fonte de verdade dos dados de negócio.
 - Preserve a estratégia documentada em [`ACCESS_AND_REFRESH_TOKENS.md`](.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md): token em memória, envio limitado à API configurada e tratamento de expiração. Mudanças na persistência da sessão exigem revisão do fluxo completo com o backend.
 
+## Preferências por usuário
+
+Configurações de interface escolhidas pelo usuário pertencem à conta: são salvas pela
+API em `GET/PUT /users/me/preferences` e acompanham o usuário em qualquer dispositivo.
+O `localStorage` do navegador é apenas cache. Hoje fazem parte delas: tema, cor de
+destaque, visualização do planner, horário de sono e largura da barra lateral.
+
+**Em toda atualização, verifique se ela cria ou altera uma configuração do usuário; se
+sim, inclua-a nas preferências por usuário (backend + front + docs):** nova migration
+Flyway em `tb_user_preferences` com valor padrão para as linhas existentes, DTOs,
+validação e testes no backend; `UserPreferences` e `UserPreferencesService` no frontend;
+e o contrato em `.docs/preferences/README.md` (backend) e `docs/USER_PREFERENCES.md`
+(frontend). Rascunhos, abas abertas e outros estados temporários de tela não são
+preferências.
+
 ## 7. Fluxo para novas funcionalidades e correções
 
 1. Identifique o caso de uso, suas regras, seu usuário e as respostas esperadas.

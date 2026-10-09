@@ -29,6 +29,7 @@ Toda a documentação complementar está em [`.docs`](.docs):
 | Executar a API | [`.docs/SETUP.md`](.docs/SETUP.md) |
 | Autenticação e sessões | [`.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md`](.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md) |
 | Configuração do JWT | [`.docs/authentication/JWT_CONFIGURATION.md`](.docs/authentication/JWT_CONFIGURATION.md) |
+| Preferências por usuário | [`.docs/preferences/README.md`](.docs/preferences/README.md) |
 | Regras e contratos de negócio | [`.docs/business-rules/BUSINESS_RULES.md`](.docs/business-rules/BUSINESS_RULES.md) |
 | Retenção automática | [`.docs/retention/README.md`](.docs/retention/README.md) |
 | Operação da API | [`.docs/operations/API_OPERATION.md`](.docs/operations/API_OPERATION.md) |
