@@ -12,6 +12,8 @@ Configure as variáveis de ambiente ou um arquivo local `.env` (veja `.env.examp
 - `REFRESH_IDLE_TIMEOUT`: prazo de inatividade da sessão; padrão `P30D`.
 - `CORS_ALLOWED_ORIGINS`: origens do frontend separadas por vírgula; padrão `http://localhost:4200`.
 
+Para publicar com Vercel e Render, veja [DEPLOY_RENDER_VERCEL.md](DEPLOY_RENDER_VERCEL.md).
+
 Para gerar uma chave no PowerShell:
 
 ```powershell

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mock.env.MockEnvironment;
 
 import java.nio.file.Path;
@@ -18,6 +19,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,10 +38,37 @@ class ProductionProxyTest {
         checkProxy(false);
     }
 
-    private void checkProxy(boolean trusted) throws Exception {
+    @Test
+    void renderProxyPreservesHttpsAndSecureCookies() throws Exception {
+        checkProxy(true, "application-production.yml", "application-render.yml");
+    }
+
+    @Test
+    void renderTrustsOnlyPrivateProxyAddresses() {
+        var properties = load("application-production.yml", "application-render.yml");
+        assertThat(properties.getProperty("server.address")).isEqualTo("0.0.0.0");
+        var proxies = Pattern.compile(properties.getProperty("server.tomcat.remoteip.internal-proxies"));
+        for (var address : new String[]{"10.214.3.7", "172.16.0.1", "172.31.255.2", "192.168.1.9",
+                "100.64.0.1", "100.127.9.9", "127.0.0.1", "::1"}) {
+            assertThat(proxies.matcher(address).matches()).as(address).isTrue();
+        }
+        for (var address : new String[]{"8.8.8.8", "172.32.0.1", "100.128.0.1", "192.169.0.1", "11.0.0.1"}) {
+            assertThat(proxies.matcher(address).matches()).as(address).isFalse();
+        }
+    }
+
+    private Properties load(String... resources) {
         var yaml = new YamlPropertiesFactoryBean();
-        yaml.setResources(new ClassPathResource("application-production.yml"));
-        var properties = yaml.getObject();
+        yaml.setResources(Arrays.stream(resources).map(ClassPathResource::new).toArray(Resource[]::new));
+        return yaml.getObject();
+    }
+
+    private void checkProxy(boolean trusted) throws Exception {
+        checkProxy(trusted, "application-production.yml");
+    }
+
+    private void checkProxy(boolean trusted, String... resources) throws Exception {
+        var properties = load(resources);
         assertThat(properties.getProperty("server.forward-headers-strategy")).isEqualTo("native");
         var tomcat = new Tomcat();
         tomcat.setBaseDir(directory.toString());
