@@ -2,6 +2,7 @@ package com.workspace.api.user.handler;
 
 import com.workspace.api.user.controller.UserController;
 import com.workspace.api.user.exception.RefreshRejectedException;
+import com.workspace.api.user.preferences.controller.UserPreferencesController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-@RestControllerAdvice(assignableTypes = UserController.class)
+@RestControllerAdvice(assignableTypes = {UserController.class, UserPreferencesController.class})
 public class UserExceptionHandler {
     @ExceptionHandler(RefreshRejectedException.class)
     public ResponseEntity<SessionError> handleRefreshError(

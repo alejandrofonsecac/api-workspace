@@ -119,6 +119,22 @@ Se a lógica precisar antecipar uma regra de negócio, registre a razão junto a
 - Cache de dados privados deve respeitar a sessão e ser invalidado ao sair ou trocar de conta. Preferências visuais podem usar armazenamento local; ele não é a fonte de verdade dos dados de negócio.
 - Preserve a estratégia documentada em [`ACCESS_AND_REFRESH_TOKENS.md`](.docs/authentication/ACCESS_AND_REFRESH_TOKENS.md): token em memória, envio limitado à API configurada e tratamento de expiração. Mudanças na persistência da sessão exigem revisão do fluxo completo com o backend.
 
+## Preferências por usuário
+
+Configurações de interface escolhidas pelo usuário pertencem à conta e acompanham o
+usuário em qualquer dispositivo. A API guarda um documento JSON por conta
+(`GET`/`PATCH /users/me/preferences`) sem interpretar as chaves; o frontend define quais
+preferências existem, seus valores aceitos e padrões, e usa o `localStorage` só como cache.
+
+**Em toda atualização, verifique se ela cria ou altera uma configuração do usuário; se
+sim, registre-a como preferência por usuário.** Para uma preferência visual basta
+`PreferenceStore.define()` no serviço do frontend que é dono do estado, com chave
+`camelCase` estável, padrão e validação, além de testes e uma linha na tabela de
+`docs/USER_PREFERENCES.md` — sem migration nem mudança no backend. Se o valor passar a
+influenciar regras ou cálculos do servidor (disponibilidade, datas, limites), ele deixa
+de ser preferência visual: crie um campo próprio validado no backend. Rascunhos, abas
+abertas e outros estados temporários de tela não são preferências.
+
 ## 7. Fluxo para novas funcionalidades e correções
 
 1. Identifique o caso de uso, suas regras, seu usuário e as respostas esperadas.

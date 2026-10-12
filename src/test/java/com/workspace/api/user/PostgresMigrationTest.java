@@ -32,7 +32,7 @@ class PostgresMigrationTest {
     @Test
     void freshDatabaseMigratesAndPassesHibernateValidation() {
         assertThat(jdbc.queryForObject("select enabled from tb_users where id = ?", Boolean.class, LEGACY_ID)).isFalse();
-        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(7);
+        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(9);
     }
 
     @Test
