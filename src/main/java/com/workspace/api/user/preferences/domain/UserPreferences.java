@@ -3,9 +3,16 @@ package com.workspace.api.user.preferences.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-/** Preferências de interface de um usuário; a chave primária é o próprio id do usuário. */
+/**
+ * Documento de preferências de interface de um usuário. As chaves pertencem ao
+ * frontend; o backend só garante dono, formato e limites.
+ */
 @Entity
 @Table(name = "tb_user_preferences")
 @Getter
@@ -15,26 +22,9 @@ public class UserPreferences {
     @Column(name = "user_id", length = 36)
     private String userId;
 
-    @Column(nullable = false, length = 20)
-    private String theme;
-
-    @Column(nullable = false, length = 20)
-    private String accent;
-
-    @Column(name = "planner_display", nullable = false, length = 20)
-    private String plannerDisplay;
-
-    @Column(name = "sleep_enabled", nullable = false)
-    private boolean sleepEnabled;
-
-    @Column(name = "sleep_start", nullable = false)
-    private short sleepStart;
-
-    @Column(name = "sleep_end", nullable = false)
-    private short sleepEnd;
-
-    @Column(name = "sidebar_width", nullable = false)
-    private short sidebarWidth;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false)
+    private Map<String, Object> data = new LinkedHashMap<>();
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;

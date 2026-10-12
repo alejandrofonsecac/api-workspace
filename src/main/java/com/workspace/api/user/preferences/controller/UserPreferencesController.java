@@ -1,11 +1,10 @@
 package com.workspace.api.user.preferences.controller;
 
-import com.workspace.api.user.preferences.dto.UserPreferencesRequest;
 import com.workspace.api.user.preferences.dto.UserPreferencesResponse;
 import com.workspace.api.user.preferences.service.UserPreferencesService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 /** Preferências do usuário autenticado; o id vem sempre do token. */
 @RestController
@@ -19,8 +18,8 @@ public class UserPreferencesController {
         return preferences.current();
     }
 
-    @PutMapping
-    public UserPreferencesResponse replace(@Valid @RequestBody UserPreferencesRequest request) {
-        return preferences.replace(request);
+    @PatchMapping
+    public UserPreferencesResponse merge(@RequestBody(required = false) Map<String, Object> changes) {
+        return preferences.merge(changes);
     }
 }
