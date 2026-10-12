@@ -118,7 +118,9 @@ class UserPreferencesTest extends AuthenticatedTest {
         patchJson("{\"note\":\"" + "x".repeat(501) + "\"}").andExpect(status().isBadRequest());
 
         StringBuilder manyKeys = new StringBuilder("{");
-        for (int i = 0; i < 101; i++) manyKeys.append(i == 0 ? "" : ",").append("\"k").append(i).append("\":1");
+        for (int i = 0; i < 101; i++) {
+            manyKeys.append(i == 0 ? "" : ",").append("\"k").append(i).append("\":1");
+        }
         patchJson(manyKeys.append("}").toString()).andExpect(status().isBadRequest());
 
         StringBuilder large = new StringBuilder("{");

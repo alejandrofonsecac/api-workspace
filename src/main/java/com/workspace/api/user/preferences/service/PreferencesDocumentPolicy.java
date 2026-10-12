@@ -29,16 +29,22 @@ public class PreferencesDocumentPolicy {
 
     /** Valida as alterações recebidas antes da junção com o documento salvo. */
     public void validateChanges(Map<String, Object> changes) {
-        if (changes == null) throw invalid("Preferences must be a JSON object");
+        if (changes == null) {
+            throw invalid("Preferences must be a JSON object");
+        }
         changes.forEach((key, value) -> {
             requireKey(key);
-            if (value != null) requireValue(key, value, 1);
+            if (value != null) {
+                requireValue(key, value, 1);
+            }
         });
     }
 
     /** Valida o documento final, depois da junção. */
     public void validateDocument(Map<String, Object> document) {
-        if (document.size() > MAX_KEYS) throw invalid("Preferences must have at most " + MAX_KEYS + " keys");
+        if (document.size() > MAX_KEYS) {
+            throw invalid("Preferences must have at most " + MAX_KEYS + " keys");
+        }
         if (json.writeValueAsString(document).getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) {
             throw invalid("Preferences must have at most " + MAX_BYTES + " bytes");
         }
@@ -52,7 +58,9 @@ public class PreferencesDocumentPolicy {
             }
             return;
         }
-        if (depth > MAX_DEPTH) throw invalid(path + ": nesting deeper than " + MAX_DEPTH + " levels");
+        if (depth > MAX_DEPTH) {
+            throw invalid(path + ": nesting deeper than " + MAX_DEPTH + " levels");
+        }
         if (value instanceof Map<?, ?> object) {
             object.forEach((key, child) -> {
                 requireKey(String.valueOf(key));
@@ -62,7 +70,9 @@ public class PreferencesDocumentPolicy {
         }
         if (value instanceof Collection<?> array) {
             int index = 0;
-            for (Object child : array) requireValue(path + "[" + index++ + "]", child, depth + 1);
+            for (Object child : array) {
+                requireValue(path + "[" + index++ + "]", child, depth + 1);
+            }
             return;
         }
         throw invalid(path + ": unsupported value");

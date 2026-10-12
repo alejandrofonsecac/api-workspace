@@ -59,8 +59,11 @@ public class UserPreferencesService {
 
         Map<String, Object> document = new LinkedHashMap<>(stored.getData());
         changes.forEach((key, value) -> {
-            if (value == null) document.remove(key);
-            else document.put(key, value);
+            if (value == null) {
+                document.remove(key);
+            } else {
+                document.put(key, value);
+            }
         });
         policy.validateDocument(document);
 
