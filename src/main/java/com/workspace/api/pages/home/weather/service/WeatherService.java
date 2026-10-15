@@ -4,6 +4,7 @@ import com.workspace.api.pages.home.weather.dto.NominatimDTO;
 import com.workspace.api.pages.home.weather.dto.OpenMeteoDTO;
 import com.workspace.api.pages.home.weather.dto.WeatherResponseDTO;
 import com.workspace.api.pages.home.weather.validation.WeatherValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -12,9 +13,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 public class WeatherService {
-    private static final String NOMINATIM_USER_AGENT = "PlannerFy/1.0";
+    // Nominatim's usage policy requires a User-Agent that identifies the application.
+    private static final String NOMINATIM_USER_AGENT =
+            "PlannerFy/1.0 (+https://github.com/alejandrofonsecac/api-workspace)";
 
     private final RestClient restClient;
     private final WeatherValidator weatherValidator;
@@ -27,21 +31,35 @@ public class WeatherService {
     public WeatherResponseDTO getWeather(double latitude, double longitude) {
         weatherValidator.validateCoordinates(latitude, longitude);
 
+        OpenMeteoDTO weather;
         try {
-            OpenMeteoDTO weather = fetchWeather(latitude, longitude);
-            NominatimDTO location = fetchLocation(latitude, longitude);
-
-            weatherValidator.validateWeatherResponse(weather);
-            weatherValidator.validateLocationResponse(location);
-
-            return new WeatherResponseDTO(
-                    weather.current().temperature2m(),
-                    resolveCity(location.address()),
-                    convertWeatherCode(weather.current().weatherCode())
-            );
+            weather = fetchWeather(latitude, longitude);
         } catch (RestClientException exception) {
+            log.warn("Open-Meteo request failed: {}", exception.toString());
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
-                    "Não foi possível consultar os servidores de clima e localização.");
+                    "Não foi possível consultar o servidor de clima.");
+        }
+        weatherValidator.validateWeatherResponse(weather);
+
+        return new WeatherResponseDTO(
+                weather.current().temperature2m(),
+                findCity(latitude, longitude),
+                convertWeatherCode(weather.current().weatherCode())
+        );
+    }
+
+    /** The city is complementary: a geocoding failure must not hide the weather. */
+    private String findCity(double latitude, double longitude) {
+        try {
+            NominatimDTO location = fetchLocation(latitude, longitude);
+            if (location == null || location.address() == null) {
+                log.warn("Nominatim returned no address for the requested coordinates");
+                return null;
+            }
+            return resolveCity(location.address());
+        } catch (RestClientException exception) {
+            log.warn("Nominatim request failed: {}", exception.toString());
+            return null;
         }
     }
 
@@ -85,7 +103,7 @@ public class WeatherService {
                         address.state())
                 .filter(value -> value != null && !value.isBlank())
                 .findFirst()
-                .orElse("Localização desconhecida");
+                .orElse(null);
     }
 
     private String convertWeatherCode(int weatherCode) {
