@@ -1,6 +1,5 @@
 package com.workspace.api.pages.home.weather.validation;
 
-import com.workspace.api.pages.home.weather.dto.NominatimDTO;
 import com.workspace.api.pages.home.weather.dto.OpenMeteoDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -21,12 +20,6 @@ public class WeatherValidator {
         if (weather == null || weather.current() == null
                 || weather.current().temperature2m() == null || weather.current().weatherCode() == null) {
             throw upstreamFailure("A Open-Meteo não retornou os dados climáticos esperados.");
-        }
-    }
-
-    public void validateLocationResponse(NominatimDTO location) {
-        if (location == null || location.address() == null) {
-            throw upstreamFailure("O Nominatim não retornou a localidade esperada.");
         }
     }
 
