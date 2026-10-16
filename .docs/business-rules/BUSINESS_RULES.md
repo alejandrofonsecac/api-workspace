@@ -4,18 +4,18 @@
 
 O backend `api-workspace` calcula os indicadores, decide a validade das operações e persiste os dados do usuário autenticado. O frontend `plannerFyFront` envia intenções, exibe as respostas e mantém o estado de interação. As diretrizes gerais estão em [`AGENTS.md`](../development/AGENTS.md).
 
-| Funcionalidade | Contrato usado pela interface |
-| --- | --- |
-| Hábitos e indicadores | `GET /habits/board`: lista com métricas e resumo calculados pelo servidor |
-| Cadastro e edição de hábito | `POST /habits`, `PUT /habits/{id}`, `DELETE /habits/{id}` |
-| Pausa e retomada | `PUT /habits/{id}/status`, com `{ "status": "active" }` ou `paused` |
-| Execução de hábitos | `GET /habit/planner?date=YYYY-MM-DD` e `POST /habit/{id}/completions/{date}/toggle` |
-| Eventos e tarefas | `GET/POST /events`, `PUT/DELETE /events/{id}`; `/planner/events` mantém o mesmo contrato. Tarefas são eventos sem data ou sem horário |
-| Calendário | `GET /calendar/events`: eventos que possuem data |
-| Resumo do planner | `GET /planner/summary?date=YYYY-MM-DD`: eventos, disponibilidade, contagem de eventos sem data, durações, percentual e próxima atividade |
-| Disponibilidade | `GET /planner/availability?date=YYYY-MM-DD` |
-| Início | `GET /home/dashboard`: data do servidor, foco, agenda, hábitos e indicadores do dia |
-| Notas | `PUT /notes/{id}`: atualização parcial de conteúdo, favorito ou fixação; ID é uma string UUID |
+Contratos usados pela interface em cada funcionalidade:
+
+- **Hábitos e indicadores:** `GET /habits/board` retorna a lista com métricas e resumo calculados pelo servidor.
+- **Cadastro e edição de hábito:** `POST /habits`, `PUT /habits/{id}` e `DELETE /habits/{id}`.
+- **Pausa e retomada:** `PUT /habits/{id}/status`, com `{ "status": "active" }` ou `paused`.
+- **Execução de hábitos:** `GET /habit/planner?date=YYYY-MM-DD` e `POST /habit/{id}/completions/{date}/toggle`.
+- **Eventos e tarefas:** `GET/POST /events` e `PUT/DELETE /events/{id}`; `/planner/events` mantém o mesmo contrato. Tarefas são eventos sem data ou sem horário.
+- **Calendário:** `GET /calendar/events` retorna os eventos que possuem data.
+- **Resumo do planner:** `GET /planner/summary?date=YYYY-MM-DD` retorna eventos, disponibilidade, contagem de eventos sem data, durações, percentual e próxima atividade.
+- **Disponibilidade:** `GET /planner/availability?date=YYYY-MM-DD`.
+- **Início:** `GET /home/dashboard` retorna data do servidor, foco, agenda, hábitos e indicadores do dia.
+- **Notas:** `PUT /notes/{id}` faz atualização parcial de conteúdo, favorito ou fixação; o ID é uma string UUID.
 
 As rotas antigas de hábitos em `/habit` continuam disponíveis para compatibilidade. Novas telas de gerenciamento usam `/habits`. A API legada `/event` (tabela `tb_event`) foi removida; tarefas e eventos usam a tabela `events` desde a migration V6 (`V6__unify_tasks_into_events.sql`).
 

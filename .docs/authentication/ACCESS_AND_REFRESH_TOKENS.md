@@ -37,12 +37,10 @@ revogados de famílias ainda dentro do limite permanecem. A exclusão ocorre em 
 com transação própria e SKIP LOCKED, com limite de lotes por execução; o restante
 fica para a próxima. O índice idx_refresh_absolute_expiry (V8) sustenta a consulta.
 
-| Variável | Padrão | Efeito |
-| --- | --- | --- |
-| REFRESH_CLEANUP_ENABLED | true | false remove o job do contexto |
-| REFRESH_CLEANUP_CRON | 0 30 3 * * * | Horário no fuso app.time-zone (após a retenção das 3h) |
-| REFRESH_CLEANUP_BATCH_SIZE | 500 | Linhas por lote (1 a 10000) |
-| REFRESH_CLEANUP_MAX_BATCHES | 100 | Lotes máximos por execução |
+- REFRESH_CLEANUP_ENABLED (padrão true): false remove o job do contexto.
+- REFRESH_CLEANUP_CRON (padrão `0 30 3 * * *`): horário no fuso app.time-zone (após a retenção das 3h).
+- REFRESH_CLEANUP_BATCH_SIZE (padrão 500): linhas por lote (1 a 10000).
+- REFRESH_CLEANUP_MAX_BATCHES (padrão 100): lotes máximos por execução.
 
 O perfil test desativa o job; RefreshTokenCleanupTest o executa diretamente.
 
@@ -54,14 +52,24 @@ preflight em chamadas cross-origin; CORS aceita somente as origens exatas config
 em CORS_ALLOWED_ORIGINS, com credenciais. Não configure curingas ou origens não
 confiáveis. Essa proteção contra CSRF também cobre login e logout.
 
-| Endpoint | Entrada | Resposta |
-| --- | --- | --- |
-| POST /users/register | JSON name, email, password | 201 AuthResponse + cookie |
-| POST /users/login | JSON email, password | 200 AuthResponse + cookie |
-| POST /users/refresh | Cookie; corpo vazio ou {} | 200 AuthResponse + cookie rotacionado |
-| POST /users/logout | Cookie; corpo vazio ou {} | 204; revoga família e apaga cookie |
-| POST /users/logout-all | Authorization: Bearer JWT + header de sessão | 204; revoga todas as sessões da conta e apaga cookie |
-| GET /users/me | Authorization: Bearer JWT | UserResponse existente |
+- POST /users/register
+  - **Entrada:** JSON name, email, password.
+  - **Resposta:** 201 AuthResponse + cookie.
+- POST /users/login
+  - **Entrada:** JSON email, password.
+  - **Resposta:** 200 AuthResponse + cookie.
+- POST /users/refresh
+  - **Entrada:** cookie; corpo vazio ou {}.
+  - **Resposta:** 200 AuthResponse + cookie rotacionado.
+- POST /users/logout
+  - **Entrada:** cookie; corpo vazio ou {}.
+  - **Resposta:** 204; revoga família e apaga cookie.
+- POST /users/logout-all
+  - **Entrada:** Authorization: Bearer JWT + header de sessão.
+  - **Resposta:** 204; revoga todas as sessões da conta e apaga cookie.
+- GET /users/me
+  - **Entrada:** Authorization: Bearer JWT.
+  - **Resposta:** UserResponse existente.
 
 AuthResponse mantém accessToken, tokenType, expiresIn e user (id, name, email, role).
 Logout é idempotente e funciona sem access token válido. Novo login no mesmo
@@ -87,13 +95,11 @@ O consumo está em `plannerFyFront/src/app/core/auth` e descrito em
 `plannerFyFront/docs/AUTHENTICATION.md`. Com JWT_TTL=PT15M, **o frontend precisa
 chamar /users/refresh**; sem isso a sessão visual termina a cada 15 minutos.
 
-| Arquivo | Responsabilidade |
-| --- | --- |
-| `data-access/session-api.service.ts` | POST /users/refresh e /users/logout com header de sessão e credenciais |
-| `session/auth-session.service.ts` | Identidade e token em memória, renovação compartilhada, restauração e logout |
-| `http/auth.interceptor.ts` | Bearer só para a API, renovação e repetição única após 401 |
-| `routing/auth.guard.ts` | Rotas privadas aguardam a renovação quando o token venceu |
-| `app.config.ts` | `provideAppInitializer` restaura a sessão pelo cookie ao abrir a aplicação |
+- `data-access/session-api.service.ts`: POST /users/refresh e /users/logout com header de sessão e credenciais.
+- `session/auth-session.service.ts`: identidade e token em memória, renovação compartilhada, restauração e logout.
+- `http/auth.interceptor.ts`: Bearer só para a API, renovação e repetição única após 401.
+- `routing/auth.guard.ts`: rotas privadas aguardam a renovação quando o token venceu.
+- `app.config.ts`: `provideAppInitializer` restaura a sessão pelo cookie ao abrir a aplicação.
 
 AuthSession mantém a identidade e o token em memória. O token é considerado vencido
 30 segundos antes de expiresIn; a próxima requisição renova a sessão antes do envio.

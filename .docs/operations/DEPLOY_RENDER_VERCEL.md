@@ -18,14 +18,11 @@ O `vercel.json` do frontend repassa `/api/*` à API removendo o prefixo, como o 
 - Runtime: **Docker**, usando o `Dockerfile` da raiz. Branch: a que contém o código atual de `main`.
 - Health check: deixe vazio. Toda requisição sem HTTPS encaminhado recebe `426`, inclusive as internas.
 - Variáveis de ambiente:
-
-| Variável | Valor |
-| --- | --- |
-| `SPRING_PROFILES_ACTIVE` | `production,render` |
-| `CORS_ALLOWED_ORIGINS` | Origem exata do frontend, sem `/` final; várias separadas por vírgula |
-| `API_URL`, `API_USER`, `API_PASSWORD` | Conexão PostgreSQL (`jdbc:postgresql://...`) |
-| `JWT_SECRET` | Base64 de no mínimo 32 bytes aleatórios; veja [API_OPERATION.md](API_OPERATION.md) |
-| `APP_TIME_ZONE` | Opcional; padrão `America/Sao_Paulo` |
+  - `SPRING_PROFILES_ACTIVE`: `production,render`.
+  - `CORS_ALLOWED_ORIGINS`: origem exata do frontend, sem `/` final; várias separadas por vírgula.
+  - `API_URL`, `API_USER`, `API_PASSWORD`: conexão PostgreSQL (`jdbc:postgresql://...`).
+  - `JWT_SECRET`: Base64 de no mínimo 32 bytes aleatórios; veja [API_OPERATION.md](API_OPERATION.md).
+  - `APP_TIME_ZONE`: opcional; padrão `America/Sao_Paulo`.
 
 O perfil `render` sobrepõe o `production`: escuta em `0.0.0.0:$PORT` e confia em
 `X-Forwarded-Proto` apenas de endereços privados/loopback, de onde chega o proxy TLS do Render.

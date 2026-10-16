@@ -8,15 +8,13 @@ Este relatório descreve o código atual e propõe uma direção. Nesta revisão
 
 As alterações foram:
 
-| Arquivo | Alteração e finalidade |
-| --- | --- |
-| [goal.service.ts](../../../plannerFyFront/src/app/pages/goals/service/goal.service.ts) | Passou a enviar o formato aceito pela API, converter a resposta, usar o ID retornado pelo servidor e apresentar erros reais. Removi a meta de demonstração quando o GET retorna vazio. O mesmo contrato passou a ser usado no PUT. |
-| [goals.ts](../../../plannerFyFront/src/app/pages/goals/goals.ts) | `saveGoal()` espera a confirmação da API antes de fechar o formulário. Expõe o estado de gravação e a ação de recarregar. |
-| [goals.html](../../../plannerFyFront/src/app/pages/goals/goals.html) | Conecta esses estados à interface, oferece nova tentativa e repassa erro/gravação ao formulário. |
-| [goal-drawer.ts](../../../plannerFyFront/src/app/pages/goals/components/goal-drawer/goal-drawer.ts) e HTML correspondente | Impedem novo envio enquanto há gravação, mostram o erro e usam prioridades consistentes com o modelo visual. |
-| `goal-api.mapper.ts` | Arquivo histórico com as conversões entre formulário/modelo visual e contrato HTTP. |
-| `goals-api.ts` | Arquivo histórico de tipos TypeScript para o JSON de entrada e saída da API, compartilhado com a home. |
-| [goal.service.spec.ts](../../../plannerFyFront/src/app/pages/goals/service/goal.service.spec.ts) | Novos testes de GET, POST, erro, semana, hábito e atualização. |
+- [goal.service.ts](../../../plannerFyFront/src/app/pages/goals/service/goal.service.ts): passou a enviar o formato aceito pela API, converter a resposta, usar o ID retornado pelo servidor e apresentar erros reais. Removi a meta de demonstração quando o GET retorna vazio. O mesmo contrato passou a ser usado no PUT.
+- [goals.ts](../../../plannerFyFront/src/app/pages/goals/goals.ts): `saveGoal()` espera a confirmação da API antes de fechar o formulário. Expõe o estado de gravação e a ação de recarregar.
+- [goals.html](../../../plannerFyFront/src/app/pages/goals/goals.html): conecta esses estados à interface, oferece nova tentativa e repassa erro/gravação ao formulário.
+- [goal-drawer.ts](../../../plannerFyFront/src/app/pages/goals/components/goal-drawer/goal-drawer.ts) e HTML correspondente: impedem novo envio enquanto há gravação, mostram o erro e usam prioridades consistentes com o modelo visual.
+- `goal-api.mapper.ts`: arquivo histórico com as conversões entre formulário/modelo visual e contrato HTTP.
+- `goals-api.ts`: arquivo histórico de tipos TypeScript para o JSON de entrada e saída da API, compartilhado com a home.
+- [goal.service.spec.ts](../../../plannerFyFront/src/app/pages/goals/service/goal.service.spec.ts): novos testes de GET, POST, erro, semana, hábito e atualização.
 
 A pasta `utils`, o arquivo `week.utils.ts`, o cálculo em `goal-progress.ts` e o modelo em `models/goal.ts` já existiam. Eu adicionei `goal-api.mapper.ts` à pasta existente. `utils` é apenas uma convenção para organizar funções auxiliares; não é uma funcionalidade especial do Angular.
 
@@ -24,10 +22,8 @@ Na home, alterei [weekly-goals.service.ts](../../../plannerFyFront/src/app/pages
 
 **O que é o goal-api.mapper.** Um mapper é uma função que transforma um objeto de um formato em outro. Neste caso, ele tem duas funções:
 
-| Função | Quando é chamada | O que faz |
-| --- | --- | --- |
-| `toGoalRequest()` | Antes de POST e PUT, pelo serviço Angular | Converte o formulário no JSON esperado pelo backend. |
-| `fromGoalResponse()` | Depois de GET, POST e PUT, pelo serviço Angular | Converte o JSON recebido no objeto utilizado pelos componentes. |
+- `toGoalRequest()`: chamada antes de POST e PUT, pelo serviço Angular. Converte o formulário no JSON esperado pelo backend.
+- `fromGoalResponse()`: chamada depois de GET, POST e PUT, pelo serviço Angular. Converte o JSON recebido no objeto utilizado pelos componentes.
 
 Exemplo de envio:
 
@@ -46,12 +42,10 @@ O arquivo não acessa o banco nem substitui o DTO Java. Eu o criei para preserva
 
 **DTO no backend e tipos no frontend.** Há quatro coisas diferentes no fluxo:
 
-| Estrutura | Papel |
-| --- | --- |
-| `Goals` no Java | Entidade persistida pelo JPA, com colunas e relacionamento com `Habit`. |
-| `GoalsRequestDTO` | Contrato de entrada. Recebe os valores enviados pelo cliente e contém as validações do pedido. |
-| `GoalsResponseDTO` | Contrato de saída. Seleciona os dados expostos e transforma o relacionamento em `habitId`, sem enviar a entidade inteira. |
-| `GoalApiRequest` / `GoalApiResponse` no TypeScript | Descrevem ao compilador o JSON que o frontend deve enviar/receber. Não executam regras de negócio nem validação de dados em tempo de execução. |
+- `Goals` no Java: entidade persistida pelo JPA, com colunas e relacionamento com `Habit`.
+- `GoalsRequestDTO`: contrato de entrada. Recebe os valores enviados pelo cliente e contém as validações do pedido.
+- `GoalsResponseDTO`: contrato de saída. Seleciona os dados expostos e transforma o relacionamento em `habitId`, sem enviar a entidade inteira.
+- `GoalApiRequest` / `GoalApiResponse` no TypeScript: descrevem ao compilador o JSON que o frontend deve enviar/receber. Não executam regras de negócio nem validação de dados em tempo de execução.
 
 Declarar `getAll<GoalApiResponse>()` não faz o Angular converter `name` para `title`. O tipo genérico é uma declaração sobre a resposta esperada, não um conversor nem um validador. Essa distinção é documentada no [guia oficial do HttpClient](https://angular.dev/guide/http/making-requests).
 
@@ -59,16 +53,30 @@ Manter tipos TypeScript alinhados aos DTOs Java é adequado mesmo com um backend
 
 **Onde cada campo da entidade é usado.** A entrada passa por [GoalsController](../../src/main/java/com/workspace/api/pages/goals/controller/GoalsController.java), recebe validação com `@Valid`, chega a [GoalsService](../../src/main/java/com/workspace/api/pages/goals/service/GoalsService.java), é aplicada à entidade e salva pelo repositório. A resposta é construída em [GoalsResponseDTO](../../src/main/java/com/workspace/api/pages/goals/dto/GoalsResponseDTO.java).
 
-| Campo da entidade | Caminho e uso atual | É necessário? Onde deve ficar? |
-| --- | --- | --- |
-| `id` | Gerado pelo banco e devolvido na resposta. Identifica a meta no GET individual, PUT e DELETE; a interface usa o ID para atualizar a lista. | Sim. Sua geração e identidade pertencem ao backend/banco. |
-| `goalName` | Recebe `request.name()`. Sai como `name`, vira `title` no frontend e aparece no card de goals e na home. | Sim. São três nomes para um mesmo dado; recomendo um nome consistente no contrato e na interface. Não exige renomear a coluna existente. |
-| `expectedTarget` | Recebe o resultado esperado do formulário, persiste como texto e aparece como `expectedResult` no card e como `description` na home. | Sim para o formulário atual. É uma descrição do resultado, não a quantidade numérica de execuções do hábito. Deve ser persistido e validado no backend. |
-| `priority` | O frontend converte a prioridade para `LOW`, `NORMAL` ou `HIGH`. O backend persiste o enum. A tela usa a prioridade em rótulos e classes visuais. | Sim para a funcionalidade atual. O código do enum deve ser compartilhado pelo contrato; a tradução para “Alta/Média/Baixa” pode permanecer na apresentação. |
-| `category` | Recebe o enum, persiste e retorna à interface. É usada nos rótulos e no filtro por categoria da página. | Sim para o formulário atual. O backend define os valores aceitos; o frontend apresenta os rótulos. Atualmente `categoryId` no frontend é um código textual, não o ID de uma entidade Category. |
-| `weekId` | O frontend calcula a semana escolhida e a envia. O backend persiste e devolve. `goals.ts` compara esse valor com `selectedWeekId()` para decidir quais metas mostrar. Também muda quando a meta é adiada. | A associação da meta a uma semana é necessária para a navegação existente. Persistir no backend foi adequado. A representação como String não é obrigatória. |
-| `habitTargetCount` | Vem do campo “Meta de execuções na semana”. O backend salva a quantidade; o mapper a coloca em `habitTarget.targetCount`. `goal-progress.ts` a usa como total no cálculo de progresso. | Necessário se a meta exige uma quantidade de execuções do hábito. Deve pertencer à meta no backend, porque metas distintas podem ter quantidades diferentes para o mesmo hábito. |
-| `habit` | `request.habitId()` é usado para buscar o hábito. Se existir, o relacionamento é salvo; se não existir, há 404. Se o ID for nulo, a meta fica sem vínculo. A resposta expõe apenas `habitId`. | Necessário para a vinculação opcional solicitada. O relacionamento e sua integridade pertencem ao backend/banco. |
+- `id`
+  - **Caminho e uso atual:** gerado pelo banco e devolvido na resposta. Identifica a meta no GET individual, PUT e DELETE; a interface usa o ID para atualizar a lista.
+  - **É necessário? Onde deve ficar?** Sim. Sua geração e identidade pertencem ao backend/banco.
+- `goalName`
+  - **Caminho e uso atual:** recebe `request.name()`. Sai como `name`, vira `title` no frontend e aparece no card de goals e na home.
+  - **É necessário? Onde deve ficar?** Sim. São três nomes para um mesmo dado; recomendo um nome consistente no contrato e na interface. Não exige renomear a coluna existente.
+- `expectedTarget`
+  - **Caminho e uso atual:** recebe o resultado esperado do formulário, persiste como texto e aparece como `expectedResult` no card e como `description` na home.
+  - **É necessário? Onde deve ficar?** Sim para o formulário atual. É uma descrição do resultado, não a quantidade numérica de execuções do hábito. Deve ser persistido e validado no backend.
+- `priority`
+  - **Caminho e uso atual:** o frontend converte a prioridade para `LOW`, `NORMAL` ou `HIGH`. O backend persiste o enum. A tela usa a prioridade em rótulos e classes visuais.
+  - **É necessário? Onde deve ficar?** Sim para a funcionalidade atual. O código do enum deve ser compartilhado pelo contrato; a tradução para “Alta/Média/Baixa” pode permanecer na apresentação.
+- `category`
+  - **Caminho e uso atual:** recebe o enum, persiste e retorna à interface. É usada nos rótulos e no filtro por categoria da página.
+  - **É necessário? Onde deve ficar?** Sim para o formulário atual. O backend define os valores aceitos; o frontend apresenta os rótulos. Atualmente `categoryId` no frontend é um código textual, não o ID de uma entidade Category.
+- `weekId`
+  - **Caminho e uso atual:** o frontend calcula a semana escolhida e a envia. O backend persiste e devolve. `goals.ts` compara esse valor com `selectedWeekId()` para decidir quais metas mostrar. Também muda quando a meta é adiada.
+  - **É necessário? Onde deve ficar?** A associação da meta a uma semana é necessária para a navegação existente. Persistir no backend foi adequado. A representação como String não é obrigatória.
+- `habitTargetCount`
+  - **Caminho e uso atual:** vem do campo “Meta de execuções na semana”. O backend salva a quantidade; o mapper a coloca em `habitTarget.targetCount`. `goal-progress.ts` a usa como total no cálculo de progresso.
+  - **É necessário? Onde deve ficar?** Necessário se a meta exige uma quantidade de execuções do hábito. Deve pertencer à meta no backend, porque metas distintas podem ter quantidades diferentes para o mesmo hábito.
+- `habit`
+  - **Caminho e uso atual:** `request.habitId()` é usado para buscar o hábito. Se existir, o relacionamento é salvo; se não existir, há 404. Se o ID for nulo, a meta fica sem vínculo. A resposta expõe apenas `habitId`.
+  - **É necessário? Onde deve ficar?** Necessário para a vinculação opcional solicitada. O relacionamento e sua integridade pertencem ao backend/banco.
 
 Eu acrescentei `weekId` e `habitTargetCount`. Os demais campos da entidade já existiam. Sem persistir a semana, o frontend precisaria reconstruí-la ao recarregar, podendo mostrar a meta na semana errada. Sem persistir a quantidade do hábito, o valor escolhido no formulário também se perderia. Esses campos não foram necessários apenas para fazer um POST retornar sucesso: foram acrescentados para preservar informações que a interface já coletava/usava.
 
@@ -86,13 +94,21 @@ A migração histórica de metas acrescenta as duas colunas sem atribuir uma sem
 
 **O problema real dentro do mapper atual.** Além das renomeações, `fromGoalResponse()` fabrica valores ou reaproveita dados em memória:
 
-| Informação | Comportamento atual | Avaliação |
-| --- | --- | --- |
-| `status` | Mantém o estado anterior ou deduz “em andamento/planejada” comparando a semana com a semana atual. | Regra de negócio no lugar errado. A API deveria fornecer o estado oficial. |
-| `createdAt` | Usa o valor anterior ou a data do navegador no momento da conversão. | Não representa necessariamente a criação real. Deve ser gerado e persistido pelo backend. |
-| `completedAt` | Só reaproveita o valor anterior em memória. | Se a conclusão existir no produto, sua data deve ser registrada no backend. |
-| `deferredCount` | Mantém o valor anterior ou usa zero. | Não é um histórico persistido de adiamentos. Deve ficar no backend se essa informação for necessária ao produto. |
-| `taskLinks` | Mantém os vínculos anteriores ou usa uma lista vazia. | Não carrega vínculos reais da API atual. Exige modelagem no backend se a função for mantida. |
+- `status`
+  - **Comportamento atual:** mantém o estado anterior ou deduz “em andamento/planejada” comparando a semana com a semana atual.
+  - **Avaliação:** regra de negócio no lugar errado. A API deveria fornecer o estado oficial.
+- `createdAt`
+  - **Comportamento atual:** usa o valor anterior ou a data do navegador no momento da conversão.
+  - **Avaliação:** não representa necessariamente a criação real. Deve ser gerado e persistido pelo backend.
+- `completedAt`
+  - **Comportamento atual:** só reaproveita o valor anterior em memória.
+  - **Avaliação:** se a conclusão existir no produto, sua data deve ser registrada no backend.
+- `deferredCount`
+  - **Comportamento atual:** mantém o valor anterior ou usa zero.
+  - **Avaliação:** não é um histórico persistido de adiamentos. Deve ficar no backend se essa informação for necessária ao produto.
+- `taskLinks`
+  - **Comportamento atual:** mantém os vínculos anteriores ou usa uma lista vazia.
+  - **Avaliação:** não carrega vínculos reais da API atual. Exige modelagem no backend se a função for mantida.
 
 Esses campos já existiam no modelo visual. Eu preservei esse modelo e completei a resposta para continuar usando seus componentes. A consequência que deveria ter ficado mais explícita na entrega anterior é: **GET/POST funcionarem não significa que conclusão, datas, histórico e progresso estejam integrados de ponta a ponta.**
 
@@ -102,16 +118,14 @@ O cálculo de progresso já existia em `goal-progress.ts` e continua no frontend
 
 **Divisão de responsabilidades que recomendo para este projeto.**
 
-| Responsabilidade | Lugar recomendado |
-| --- | --- |
-| Validar os campos, a existência do hábito e a semana | DTOs para formato; serviço de domínio para regras e consultas. |
-| Definir semana padrão, quantidade padrão, estado e datas oficiais | Backend. Deve haver uma regra explícita, independente do navegador. |
-| Concluir/adiar metas, registrar datas e histórico | Backend, em operações que apliquem essas regras. |
-| Calcular progresso com base em execuções/tarefas persistidas | Backend; frontend recebe os números para renderizar. |
-| Buscar metas por semana, categoria e estado | Backend pode oferecer filtros no GET. Hoje o backend devolve todas e o frontend filtra. |
-| Abrir/fechar formulário, exibir carregamento e mensagens | Frontend. Isso não é regra de negócio. |
-| Formatar datas para exibição, escolher cores e traduzir rótulos | Frontend. Pode usar os mesmos enums da API e traduzir apenas os textos exibidos. |
-| Validar campos no formulário para resposta imediata | Frontend, como auxílio; a validação obrigatória continua no backend. |
+- **Validar os campos, a existência do hábito e a semana:** DTOs para formato; serviço de domínio para regras e consultas.
+- **Definir semana padrão, quantidade padrão, estado e datas oficiais:** backend. Deve haver uma regra explícita, independente do navegador.
+- **Concluir/adiar metas, registrar datas e histórico:** backend, em operações que apliquem essas regras.
+- **Calcular progresso com base em execuções/tarefas persistidas:** backend; frontend recebe os números para renderizar.
+- **Buscar metas por semana, categoria e estado:** backend pode oferecer filtros no GET. Hoje o backend devolve todas e o frontend filtra.
+- **Abrir/fechar formulário, exibir carregamento e mensagens:** frontend. Isso não é regra de negócio.
+- **Formatar datas para exibição, escolher cores e traduzir rótulos:** frontend. Pode usar os mesmos enums da API e traduzir apenas os textos exibidos.
+- **Validar campos no formulário para resposta imediata:** frontend, como auxílio; a validação obrigatória continua no backend.
 
 **Pastas e complexidade.** `goals-api.ts` contém tipos específicos de metas. Colocá-lo em `core/data-access` permitiu compartilhamento com a home, mas eu preferiria uma área de domínio compartilhada, como `shared/goals/models`, mantendo em `core` o cliente HTTP genérico. O formulário e os componentes podem continuar em `pages/goals`.
 

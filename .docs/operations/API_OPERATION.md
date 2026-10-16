@@ -29,14 +29,12 @@ Execute com `./mvnw spring-boot:run` ou `.\mvnw.cmd spring-boot:run` no Windows.
 
 ## Cadastro e login
 
-| Método | Rota | Acesso |
-| --- | --- | --- |
-| POST | `/users/register` | Público; cria conta com perfil USER e retorna JWT |
-| POST | `/users/login` | Público; valida e-mail e senha e retorna JWT |
-| POST | `/users/refresh` | Usa o cookie HttpOnly para renovar o access token e rotacionar a sessão |
-| POST | `/users/logout` | Revoga a sessão atual e remove o cookie |
-| POST | `/users/logout-all` | Usuário autenticado; revoga todas as sessões da conta |
-| GET | `/users/me` | Usuário autenticado |
+- `POST /users/register`: público; cria conta com perfil USER e retorna JWT.
+- `POST /users/login`: público; valida e-mail e senha e retorna JWT.
+- `POST /users/refresh`: usa o cookie HttpOnly para renovar o access token e rotacionar a sessão.
+- `POST /users/logout`: revoga a sessão atual e remove o cookie.
+- `POST /users/logout-all`: usuário autenticado; revoga todas as sessões da conta.
+- `GET /users/me`: usuário autenticado.
 
 Cadastro:
 

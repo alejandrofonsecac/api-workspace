@@ -28,11 +28,9 @@ uma chave vazia continua sendo rejeitada. Não existe chave padrão compartilhad
 
 ## Três objetos com funções diferentes
 
-| Objeto | Função | Onde é criado |
-| --- | --- | --- |
-| `PasswordEncoder` | Calcula e verifica o hash da senha com BCrypt | `SecurityConfiguration.passwordEncoder()` |
-| `JwtEncoder` | Monta e assina o JWT emitido após o login ou cadastro | `JwtConfiguration.jwtEncoder()` |
-| `JwtDecoder` | Verifica o JWT recebido nas próximas requisições | `JwtConfiguration.jwtDecoder()` |
+- `PasswordEncoder`: calcula e verifica o hash da senha com BCrypt. Criado em `SecurityConfiguration.passwordEncoder()`.
+- `JwtEncoder`: monta e assina o JWT emitido após o login ou cadastro. Criado em `JwtConfiguration.jwtEncoder()`.
+- `JwtDecoder`: verifica o JWT recebido nas próximas requisições. Criado em `JwtConfiguration.jwtDecoder()`.
 
 O nome “encoder” é genérico. Neste projeto, **hash de senha e assinatura de token são operações distintas**.
 
@@ -69,14 +67,12 @@ O JWT é um token assinado usado nas chamadas seguintes, sem reenviar a senha.
 
 O método `UserService.token()` prepara os dados do token, chamados de claims:
 
-| Campo | Significado no projeto |
-| --- | --- |
-| `iss` | Quem emitiu: valor de `JWT_ISSUER` |
-| `sub` | ID do usuário; identifica o proprietário dos dados |
-| `iat` | Quando foi emitido |
-| `exp` | Quando expira |
-| `jti` | Identificador aleatório deste token |
-| `role` | Perfil no momento da emissão |
+- `iss`: quem emitiu; valor de `JWT_ISSUER`.
+- `sub`: ID do usuário; identifica o proprietário dos dados.
+- `iat`: quando foi emitido.
+- `exp`: quando expira.
+- `jti`: identificador aleatório deste token.
+- `role`: perfil no momento da emissão.
 
 `JwsHeader.with(MacAlgorithm.HS256)` informa o algoritmo de assinatura.
 `JwtEncoderParameters.from(header, claims)` reúne o cabeçalho e os dados.
@@ -144,11 +140,9 @@ $jwtRandom.Dispose()
 Copie o resultado para `JWT_SECRET=<resultado>` no `../.env`, ou configure a variável de ambiente.
 Não use a chave pública do perfil de testes na aplicação.
 
-| Variável | Configuração |
-| --- | --- |
-| `JWT_SECRET` | Obrigatória; segredo Base64 |
-| `JWT_ISSUER` | Padrão `workspace-api`; deve ser igual na emissão e verificação |
-| `JWT_TTL` | Padrão `PT15M`; duração de 15 minutos, no formato ISO-8601 |
+- `JWT_SECRET`: obrigatória; segredo Base64.
+- `JWT_ISSUER`: padrão `workspace-api`; deve ser igual na emissão e verificação.
+- `JWT_TTL`: padrão `PT15M`; duração de 15 minutos, no formato ISO-8601.
 
 O cliente precisa renovar o access token por `POST /users/refresh` quando ele vence
 (`JWT_TTL`); o Angular faz isso automaticamente. Aumentar `JWT_TTL` não corrige

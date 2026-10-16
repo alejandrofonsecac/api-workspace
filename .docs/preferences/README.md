@@ -59,21 +59,17 @@ Um `PATCH` vazio (`{}`) não grava nada. A primeira gravação cria a linha.
 
 ### Limites (400 quando violados)
 
-| Regra | Limite |
-| --- | --- |
-| Corpo | objeto JSON (arrays, textos e JSON inválido são rejeitados) |
-| Nomes de chave, inclusive em objetos internos | `camelCase`: `[a-z][A-Za-z0-9]{0,63}` |
-| Valores | texto, número, booleano, `null`, objeto ou array |
-| Profundidade | até 3 níveis de objetos/arrays dentro de uma chave |
-| Texto | até 500 caracteres |
-| Documento após a junção | até 100 chaves e 16 KB |
+- **Corpo:** objeto JSON (arrays, textos e JSON inválido são rejeitados).
+- **Nomes de chave, inclusive em objetos internos:** `camelCase`, no padrão `[a-z][A-Za-z0-9]{0,63}`.
+- **Valores:** texto, número, booleano, `null`, objeto ou array.
+- **Profundidade:** até 3 níveis de objetos/arrays dentro de uma chave.
+- **Texto:** até 500 caracteres.
+- **Documento após a junção:** até 100 chaves e 16 KB.
 
 ### Erros
 
-| Status | Quando | Corpo |
-| --- | --- | --- |
-| `400` | Corpo fora dos limites acima | `{ "status": 400, "message": "..." }` |
-| `401` | Token ausente, inválido ou expirado | — |
+- `400`: corpo fora dos limites acima; responde `{ "status": 400, "message": "..." }`.
+- `401`: token ausente, inválido ou expirado.
 
 Gravações da mesma conta são serializadas com bloqueio da linha do usuário
 (`UserRepository.lockById`), inclusive a primeira; não há resposta de conflito.
