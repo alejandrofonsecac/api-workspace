@@ -12,7 +12,8 @@ import java.util.regex.Pattern;
  * Bounded recurrence: dates and limits are authoritative on the server.
  */
 public final class RecurrencePolicy {
-    private static final Pattern RULE = Pattern.compile("FREQ=(DAILY|WEEKLY|MONTHLY|YEARLY)(?:;UNTIL=([0-9]{8}))?");
+    // BYDAY only supports the weekdays-only daily variant: Monday to Friday, without holidays.
+    private static final Pattern RULE = Pattern.compile("FREQ=(DAILY|WEEKLY|MONTHLY|YEARLY)(;BYDAY=MO,TU,WE,TH,FR)?(?:;UNTIL=([0-9]{8}))?");
 
     private RecurrencePolicy() {
     }
@@ -30,8 +31,13 @@ public final class RecurrencePolicy {
             throw invalid("Unsupported recurrence rule");
         }
 
+        boolean weekdaysOnly = matcher.group(2) != null;
+        if (weekdaysOnly && (!matcher.group(1).equals("DAILY") || matcher.group(3) == null)){
+            throw invalid("Weekdays-only recurrence requires FREQ=DAILY and an end date");
+        }
+
         // Existing clients used FREQ alone as retention metadata. Preserve that contract.
-        if (matcher.group(2) == null){
+        if (matcher.group(3) == null){
             return Collections.singletonList(start);
         }
 
@@ -40,7 +46,7 @@ public final class RecurrencePolicy {
         }
 
         try {
-            until = LocalDate.parse(matcher.group(2), DateTimeFormatter.BASIC_ISO_DATE);
+            until = LocalDate.parse(matcher.group(3), DateTimeFormatter.BASIC_ISO_DATE);
         } catch (DateTimeException error) {
             throw invalid("Invalid recurrence end date");
         }
@@ -66,12 +72,25 @@ public final class RecurrencePolicy {
                 continue;
             }
 
+            // A weekend start date is skipped as well: the series begins on the next weekday.
+            if (weekdaysOnly && isWeekend(date)){
+                continue;
+            }
+
             if (result.size() == 1000){
                 throw invalid("Use at most 1000 occurrences");
             }
             result.add(date);
         }
+
+        if (result.isEmpty()){
+            throw invalid("Recurrence has no occurrences in the chosen period");
+        }
         return result;
+    }
+
+    private static boolean isWeekend(LocalDate date) {
+        return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
 
     private static ResponseStatusException invalid(String reason) {
