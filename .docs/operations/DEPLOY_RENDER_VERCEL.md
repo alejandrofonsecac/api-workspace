@@ -28,6 +28,22 @@ O perfil `render` sobrepõe o `production`: escuta em `0.0.0.0:$PORT` e confia e
 `X-Forwarded-Proto` apenas de endereços privados/loopback, de onde chega o proxy TLS do Render.
 O Render não publica a faixa do proxy; se o login responder `426 HTTPS_REQUIRED`, o proxy está fora dessa faixa.
 
+### Manter a instância acordada
+
+No plano gratuito, o Render suspende o serviço após cerca de 15 minutos sem tráfego, e a
+requisição seguinte espera a inicialização (cold start). Para evitar isso, um monitor externo
+chama a API a cada 10 minutos:
+
+- URL: `https://<servico>.onrender.com/ping`, sempre em HTTPS; em HTTP o filtro de sessão responde `426`.
+- Método: `GET` ou `HEAD`. A resposta é `204` sem corpo e com `Cache-Control: no-store`.
+- Sem cabeçalho `Authorization`: a rota é pública e um token inválido resultaria em `401`.
+
+`/ping` não consulta o banco nem serviços externos e não revela versão, estado ou horário, então
+custa o mesmo que uma requisição recusada. Só `GET`/`HEAD` nesse caminho exato são públicos; outros
+métodos e subcaminhos (`/ping/`, `/ping/x`) continuam exigindo autenticação.
+Manter a instância sempre ativa consome cerca de 744 das 750 horas mensais gratuitas do Render,
+compartilhadas entre os serviços gratuitos da conta.
+
 ### CORS mesmo com proxy
 
 A Vercel repassa o cabeçalho `Origin` do navegador. A API compara essa origem com a lista de

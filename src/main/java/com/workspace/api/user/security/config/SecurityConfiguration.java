@@ -39,6 +39,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/register", "/users/login", "/users/refresh", "/users/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/ping").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/ping").permitAll()
                         .requestMatchers("/users/*/role").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.decoder(decoder)
