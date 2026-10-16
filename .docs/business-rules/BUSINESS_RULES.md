@@ -75,6 +75,13 @@ As regras, os contratos, a operação e a validação da limpeza estão em [Rete
 Datas inexistentes (dia 31 ou 29/02) são puladas sem deslocar a âncora.
 Regras vazias ou ausentes criam um único evento (`RecurrencePolicy`).
 
+A variante “Apenas dias úteis” usa `FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;UNTIL=YYYYMMDD`,
+nessa ordem. Ela cria ocorrências só de segunda a sexta; sábados e domingos são
+pulados, inclusive quando `date` cai no fim de semana (a série começa no próximo
+dia útil e a resposta traz essa primeira ocorrência). Feriados não são considerados.
+O limite de 1.000 conta apenas as ocorrências criadas. `BYDAY` com outra frequência,
+outra lista de dias ou sem `UNTIL`, e um período sem nenhum dia útil, resultam em 400.
+
 A criação persiste todas as ocorrências na mesma transação e mantém a resposta
 anterior (primeira ocorrência). O cliente recarrega a listagem. A conclusão inicial
 só afeta a primeira; cada ID mantém sua própria conclusão e a proteção da retenção V5.

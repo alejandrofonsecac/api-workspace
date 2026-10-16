@@ -94,6 +94,28 @@ class RetentionApiTest extends AuthenticatedTest {
                 .andExpect(jsonPath("$[1].completed").value(false));
     }
 
+    @Test
+    void weekdaysOnlySeriesPersistsMondayToFriday() throws Exception {
+        // 2030-01-01 is a Tuesday; the weekend of 5-6 January is skipped.
+        mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON)
+                .content(payload("/events", "\"isRecurring\":true,\"recurrenceRule\":\"FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;UNTIL=20300108\"")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.date").value("2030-01-01"))
+                .andExpect(jsonPath("$.recurrenceRule").value("FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;UNTIL=20300108"));
+        assertThat(events.findByUserIdOrderByDateAscStartTimeAsc(testUser.getId()))
+                .extracting(event -> event.getDate().toString())
+                .containsExactly("2030-01-01", "2030-01-02", "2030-01-03", "2030-01-04", "2030-01-07", "2030-01-08");
+    }
+
+    @Test
+    void weekdaysOnlySeriesWithoutWeekdaysIsRejected() throws Exception {
+        mvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON)
+                .content(payload("/events", "\"isRecurring\":true,\"recurrenceRule\":\"FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;UNTIL=20300106\"")
+                        .replace("2030-01-01", "2030-01-05")))
+                .andExpect(status().isBadRequest());
+        assertThat(events.findAllByUserId(testUser.getId())).isEmpty();
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"/events"})
     void rejectsInvalidRecurrenceBeforeWriting(String route) throws Exception {
