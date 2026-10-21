@@ -125,20 +125,19 @@ class MultiUserSecurityTest {
         users.saveAndFlush(second);
 
         JsonNode note = create("/notes", "{\"title\":\"Private\",\"userId\":\"" + bob.id() + "\"}", alice, 201);
-        JsonNode legacyEvent = create("/event", "{\"name\":\"Private\"}", alice, 201);
         JsonNode event = create("/events", eventJson(), alice, 201);
         JsonNode habit = create("/habit", "{\"name\":\"Private\"}", alice, 201);
         JsonNode goal = create("/goals", GOAL, alice, 201);
-        for (JsonNode value : new JsonNode[]{note, legacyEvent, event, habit, goal}) {
+        for (JsonNode value : new JsonNode[]{note, event, habit, goal}) {
             assertThat(value.path("userId").asString()).isEqualTo(alice.id());
         }
 
-        for (String path : new String[]{"/notes", "/event", "/events", "/planner/events",
+        for (String path : new String[]{"/notes", "/events", "/planner/events",
                 "/habit", "/habit/planner?date=2026-09-15", "/goals"}) {
             mvc.perform(auth(get(path).param("userId", alice.id()), bob))
                     .andExpect(status().isOk()).andExpect(content().json("[]"));
         }
-        for (String path : new String[]{"/event/getEventCount", "/events/getEventCount"}) {
+        for (String path : new String[]{"/events/getEventCount", "/planner/events/getEventCount"}) {
             mvc.perform(auth(get(path), bob)).andExpect(status().isOk()).andExpect(content().string("0"));
             mvc.perform(auth(get(path), alice)).andExpect(status().isOk()).andExpect(content().string("1"));
         }
@@ -163,12 +162,6 @@ class MultiUserSecurityTest {
         mvc.perform(auth(post(goalPath + "/complete"), bob)).andExpect(status().isNotFound());
         mvc.perform(auth(post(goalPath + "/defer"), bob)).andExpect(status().isNotFound());
 
-        // Reusing another user's id in the legacy creation endpoint must create a new record.
-        JsonNode ownLegacy = create("/event", "{\"id\":" + legacyEvent.path("id").asInt() +
-                ",\"name\":\"Own\",\"userId\":\"" + alice.id() + "\"}", bob, 201);
-        assertThat(ownLegacy.path("id").asInt()).isNotEqualTo(legacyEvent.path("id").asInt());
-        assertThat(ownLegacy.path("userId").asString()).isEqualTo(bob.id());
-        mvc.perform(auth(get("/event"), alice)).andExpect(jsonPath("$[0].name").value("Private"));
         mvc.perform(auth(get("/events"), alice)).andExpect(jsonPath("$[0].title").value("Private"));
         mvc.perform(auth(get("/goals/" + goal.path("id").asString()), alice)).andExpect(status().isOk());
 

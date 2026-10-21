@@ -54,6 +54,9 @@ Não use curingas em `*.vercel.app`: qualquer pessoa pode criar subdomínios ali
 
 ## Banco de dados
 
+Prefira em `API_USER` um usuário próprio da aplicação, dono das tabelas que ela usa, em vez do
+usuário administrativo `postgres`: se a credencial vazar, o acesso fica limitado aos dados da API.
+
 O Flyway aplica V1–V8 na inicialização. V1 usa `IF NOT EXISTS` para preservar tabelas criadas
 pela versão anterior com `ddl-auto: update`. Faça backup do banco antes do primeiro deploy desta versão.
 
