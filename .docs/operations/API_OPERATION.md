@@ -11,6 +11,7 @@ Configure as variáveis de ambiente ou um arquivo local `.env` (veja `.env.examp
 - `REFRESH_MAX_AGE`: duração máxima de uma sessão; padrão `P90D`.
 - `REFRESH_IDLE_TIMEOUT`: prazo de inatividade da sessão; padrão `P30D`.
 - `CORS_ALLOWED_ORIGINS`: origens do frontend separadas por vírgula; padrão `http://localhost:4200`.
+- `JPA_SHOW_SQL`: `true` imprime as consultas SQL no log; padrão `false`. Use apenas localmente.
 
 Para publicar com Vercel e Render, veja [DEPLOY_RENDER_VERCEL.md](DEPLOY_RENDER_VERCEL.md).
 

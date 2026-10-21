@@ -4,7 +4,12 @@
 
 - Java 21 e PostgreSQL com banco e usuário criados.
 - Spring Boot 4.1.0. O Maven Wrapper (`mvnw.cmd`) já está no projeto; não é preciso instalar Maven.
-- Na raiz de `api-workspace`, configure `.env` (ignorado pelo Git) ou variáveis de ambiente: `API_URL` (URL JDBC do PostgreSQL), `API_USER`, `API_PASSWORD` e `JWT_SECRET` (chave aleatória de pelo menos 32 bytes em Base64).
+- Na raiz de `api-workspace`, copie `.env.example` para `.env` (ignorado pelo Git) ou use variáveis de ambiente: `API_URL` (URL JDBC do PostgreSQL), `API_USER`, `API_PASSWORD` e `JWT_SECRET` (chave aleatória de pelo menos 32 bytes em Base64).
+
+## Segredos
+
+- Credenciais e chaves ficam apenas no `.env` local ou nas variáveis do ambiente de hospedagem. Nunca as coloque em `application*.yml`, testes, documentação ou mensagens de commit; o `.gitignore` também recusa `.env.*`, `*.pem`, `*.key`, `*.p12`, `*.pfx` e `*.jks`.
+- Se um segredo chegar a um commit, trate-o como exposto mesmo depois de removido: o histórico do Git o preserva. Troque-o primeiro no provedor (banco, Render) e só depois limpe o histórico.
 
 ## Localhost
 

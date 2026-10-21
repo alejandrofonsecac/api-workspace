@@ -40,8 +40,9 @@ Toda a documentação complementar está em [`.docs`](.docs):
 ## Desenvolvimento local
 
 Configure `API_URL`, `API_USER`, `API_PASSWORD` e `JWT_SECRET` no ambiente ou em um
-arquivo `.env` local. Os detalhes de configuração, variáveis de sessão e os cuidados
-para implantação estão na documentação de autenticação.
+arquivo `.env` local, criado a partir de `.env.example` e nunca commitado. Os detalhes
+de configuração, variáveis de sessão e os cuidados para implantação estão na
+documentação de autenticação.
 
 Execute a API com `./mvnw spring-boot:run` ou `./mvnw.cmd spring-boot:run` no Windows.
 Para os testes, use `./mvnw test` ou `./mvnw.cmd test`.
