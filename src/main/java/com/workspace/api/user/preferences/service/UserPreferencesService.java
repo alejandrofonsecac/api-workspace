@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Guarda as preferências de interface de cada conta como um documento JSON. O frontend
  * define as chaves, os valores e os padrões; o backend garante o dono, a junção das
- * alterações e os limites. Veja .docs/preferences/README.md.
+ * alterações e os limites. Veja user/preferences/README.md.
  */
 @Service
 @RequiredArgsConstructor
