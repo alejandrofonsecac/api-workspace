@@ -1,172 +1,117 @@
-# Autenticação: access token e refresh token
+# Access token e refresh token
 
-O JWT HS256 e o contrato AuthResponse continuam existentes. O padrão de JWT_TTL foi
-ajustado de PT1H para PT15M; configure JWT_TTL=PT15M também nos ambientes que tenham
-override. O access token fica apenas na memória do Angular.
+Como a API mantém o usuário logado. Este é o contrato entre a API e o frontend; o
+resumo da feature está em [Usuários e autenticação](../../src/main/java/com/workspace/api/user/README.md).
 
-## Sessões
+## Visão geral
 
-Cada login/cadastro cria uma família por sessão, com refresh token opaco de 32 bytes
-gerados por SecureRandom. Somente SHA-256 é persistido em tb_refresh_tokens; a
-entropia aleatória permite usar hash criptográfico sem o custo de BCrypt das senhas.
-O valor original aparece somente no Set-Cookie, nunca no JSON ou em logs.
+- **Access token:** JWT HS256 que vai no corpo da resposta, em `accessToken`. Vale 15
+  minutos (`JWT_TTL`) e é enviado em `Authorization: Bearer`. O frontend o guarda só em memória.
+- **Refresh token:** valor aleatório que vai apenas no cookie `plannerfy_refresh`. Serve
+  só para pedir um novo access token em `POST /users/refresh`.
+- Cada login ou cadastro abre uma **família** (uma sessão). Cada refresh troca o token
+  por outro da mesma família.
 
-O cookie plannerfy_refresh é HttpOnly, Secure em produção, SameSite=Strict, Path=/,
-sem Domain (host-only). Seu Max-Age corresponde ao menor prazo restante: inatividade
-ou limite absoluto. Frontend e API precisam ser **same-site**; preferir /api via proxy.
-Hosts de sites diferentes não são suportados por essa política de cookie.
+## Cookie
 
-Padrões configuráveis: REFRESH_MAX_AGE=P90D e REFRESH_IDLE_TIMEOUT=P30D.
-A inatividade é medida desde a emissão/última renovação, não desde cliques na tela.
-O máximo é validado em até 90 dias; ambos os valores precisam ser positivos e a
-inatividade não pode ultrapassar o máximo. Renovar nunca prolonga o limite absoluto.
+- Nome `plannerfy_refresh`, `HttpOnly`, `SameSite=Strict`, `Path=/`, sem `Domain`.
+- `Secure` fora dos perfis `local` e `test`.
+- `Max-Age` igual ao menor prazo restante entre inatividade e limite absoluto.
+- Frontend e API precisam estar no mesmo site. Em produção, o frontend chama a API por
+  `/api` através do proxy da Vercel; veja [Deploy](../operations/DEPLOY_RENDER_VERCEL.md).
 
-A rotação marca o hash anterior como usado e grava outro token na mesma família.
-Um bloqueio pessimista da linha do usuário serializa emissão, refresh e revogação,
-inclusive entre instâncias da API. Reutilizar um token usado/revogado revoga a
-família inteira, incluindo seus descendentes. Outras sessões não são revogadas.
-Essa revogação é confirmada no banco mesmo quando a resposta é 401.
-Tokens vencidos e usuários desativados também não renovam.
+## Prazos
 
-Os hashes consumidos são retidos para detectar reuso enquanto a família puder estar
-ativa. RefreshTokenCleanupJob remove diariamente apenas as linhas cujo
-absolute_expires_at passou há mais de 1 dia (margem para diferença de relógio entre
-instâncias). Como todas as linhas de uma família compartilham esse limite, só saem
-famílias que já não podem renovar; tokens apenas inativos (expires_at vencido) ou
-revogados de famílias ainda dentro do limite permanecem. A exclusão ocorre em lotes
-com transação própria e SKIP LOCKED, com limite de lotes por execução; o restante
-fica para a próxima. O índice idx_refresh_absolute_expiry (V8) sustenta a consulta.
+- `REFRESH_IDLE_TIMEOUT` (padrão `P30D`): a sessão expira se ficar esse tempo sem refresh.
+  A inatividade conta desde a emissão ou o último refresh, não desde cliques na tela.
+- `REFRESH_MAX_AGE` (padrão `P90D`, máximo 90 dias): limite absoluto da família. O refresh
+  nunca o prolonga.
+- Os dois precisam ser positivos e a inatividade não pode passar do máximo; caso
+  contrário, a API não inicia.
 
-- REFRESH_CLEANUP_ENABLED (padrão true): false remove o job do contexto.
-- REFRESH_CLEANUP_CRON (padrão `0 30 3 * * *`): horário no fuso app.time-zone (após a retenção das 3h).
-- REFRESH_CLEANUP_BATCH_SIZE (padrão 500): linhas por lote (1 a 10000).
-- REFRESH_CLEANUP_MAX_BATCHES (padrão 100): lotes máximos por execução.
+## Rotação e reuso
 
-O perfil test desativa o job; RefreshTokenCleanupTest o executa diretamente.
+- O token é formado por 32 bytes de `SecureRandom`. Só o SHA-256 é gravado em
+  `tb_refresh_tokens`; o valor original aparece apenas no `Set-Cookie`.
+- No refresh, o token atual é marcado como usado e outro é emitido na mesma família.
+- Usar de novo um token já usado ou revogado revoga a **família inteira**. As outras
+  sessões do usuário continuam válidas. A revogação é gravada mesmo com resposta `401`.
+- Tokens vencidos e contas desativadas não renovam.
+- Emissão, refresh e revogação bloqueiam a linha do usuário, o que serializa as
+  operações mesmo entre várias instâncias da API.
+- Um novo login no mesmo navegador revoga a família do cookie anterior. Um login que
+  falha não troca o cookie.
 
 ## Contrato HTTP
 
-Todos os POST abaixo exigem X-PlannerFy-Session: 1. O Angular envia esse header e
-withCredentials: true para login, cadastro, refresh e logout. O header força
-preflight em chamadas cross-origin; CORS aceita somente as origens exatas configuradas
-em CORS_ALLOWED_ORIGINS, com credenciais. Não configure curingas ou origens não
-confiáveis. Essa proteção contra CSRF também cobre login e logout.
+Todas as rotas `POST` abaixo exigem o header `X-PlannerFy-Session: 1` e o frontend envia
+`withCredentials: true`. Esse header força preflight CORS, e a API só aceita as origens
+exatas de `CORS_ALLOWED_ORIGINS`; isso protege contra CSRF, inclusive no login e no logout.
 
-- POST /users/register
-  - **Entrada:** JSON name, email, password.
-  - **Resposta:** 201 AuthResponse + cookie.
-- POST /users/login
-  - **Entrada:** JSON email, password.
-  - **Resposta:** 200 AuthResponse + cookie.
-- POST /users/refresh
-  - **Entrada:** cookie; corpo vazio ou {}.
-  - **Resposta:** 200 AuthResponse + cookie rotacionado.
-- POST /users/logout
-  - **Entrada:** cookie; corpo vazio ou {}.
-  - **Resposta:** 204; revoga família e apaga cookie.
-- POST /users/logout-all
-  - **Entrada:** Authorization: Bearer JWT + header de sessão.
-  - **Resposta:** 204; revoga todas as sessões da conta e apaga cookie.
-- GET /users/me
-  - **Entrada:** Authorization: Bearer JWT.
-  - **Resposta:** UserResponse existente.
+- `POST /users/register`: corpo `name`, `email`, `password` → `201` + cookie.
+- `POST /users/login`: corpo `email`, `password` → `200` + cookie.
+- `POST /users/refresh`: cookie, corpo vazio ou `{}` → `200` + cookie novo.
+- `POST /users/logout`: cookie, corpo vazio ou `{}` → `204`; revoga a família e apaga o cookie.
+- `POST /users/logout-all`: `Authorization: Bearer` → `204`; revoga todas as sessões da conta.
 
-AuthResponse mantém accessToken, tokenType, expiresIn e user (id, name, email, role).
-Logout é idempotente e funciona sem access token válido. Novo login no mesmo
-navegador revoga a família do cookie anterior. Uma falha de login não troca o cookie.
+Login, cadastro e refresh respondem `accessToken`, `tokenType`, `expiresIn` (segundos) e
+`user` (`id`, `name`, `email`, `role`). O logout é idempotente e funciona sem access token.
+Respostas de sessão usam `Cache-Control: no-store`.
 
-Refresh ausente, desconhecido, expirado, revogado, reutilizado ou de conta desativada
-retorna 401 com {status:401, code:"REFRESH_UNAVAILABLE",
-message:"Session expired or revoked", details:[]}. Não há indicação externa que
-permita distinguir reuso de credencial inválida. Header de sessão ausente retorna
-403 SESSION_HEADER_REQUIRED; HTTP em produção retorna 426 HTTPS_REQUIRED.
-As respostas de sessão usam Cache-Control: no-store. Erros de refresh não apagam
-cookies para evitar sobrescrever o cookie de outra resposta concorrente.
-Erros de login/cadastro preservam o formato e os status anteriores.
+## Erros
 
-Revogar refresh tokens **não invalida imediatamente JWTs já emitidos**: continuam
-válidos até expirar (15 minutos, mais a tolerância de relógio do decoder).
-Isso preserva o access token atual. Desativar a conta bloqueia também o JWT.
-Logout global está disponível na API, sem novo botão nesta entrega.
+- `401 REFRESH_UNAVAILABLE`: cookie ausente, desconhecido, expirado, revogado,
+  reutilizado ou de conta desativada. Corpo:
+  `{ "status": 401, "code": "REFRESH_UNAVAILABLE", "message": "Session expired or revoked", "details": [] }`.
+  A resposta não diferencia reuso de token inválido e não apaga o cookie, para não
+  sobrescrever o cookie de uma resposta concorrente.
+- `403 SESSION_HEADER_REQUIRED`: falta o header de sessão.
+- `426 HTTPS_REQUIRED`: requisição sem HTTPS fora de `local`/`test`.
+- Login e cadastro mantêm os erros descritos em [Usuários](../../src/main/java/com/workspace/api/user/README.md#erros).
 
-## Angular
+Revogar uma sessão **não invalida na hora** o access token já emitido: ele vale até
+expirar (15 minutos, mais a pequena tolerância de relógio do decoder). Desativar a conta
+bloqueia também o access token.
 
-O consumo está em `plannerFyFront/src/app/core/auth` e descrito em
-`plannerFyFront/docs/AUTHENTICATION.md`. Com JWT_TTL=PT15M, **o frontend precisa
-chamar /users/refresh**; sem isso a sessão visual termina a cada 15 minutos.
+## Limpeza
 
-- `data-access/session-api.service.ts`: POST /users/refresh e /users/logout com header de sessão e credenciais.
-- `session/auth-session.service.ts`: identidade e token em memória, renovação compartilhada, restauração e logout.
-- `http/auth.interceptor.ts`: Bearer só para a API, renovação e repetição única após 401.
-- `routing/auth.guard.ts`: rotas privadas aguardam a renovação quando o token venceu.
-- `app.config.ts`: `provideAppInitializer` restaura a sessão pelo cookie ao abrir a aplicação.
+`RefreshTokenCleanupJob` apaga, uma vez por dia, as famílias cujo limite absoluto passou
+há mais de 1 dia (margem para diferença de relógio). Tokens usados ou revogados de
+famílias ainda dentro do limite são mantidos, pois servem para detectar reuso. A
+exclusão roda em lotes com transação própria e `SKIP LOCKED`; o que sobrar fica para a
+próxima execução.
 
-AuthSession mantém a identidade e o token em memória. O token é considerado vencido
-30 segundos antes de expiresIn; a próxima requisição renova a sessão antes do envio.
-Um 401 provoca uma única renovação e uma única repetição da requisição original.
-Requisições simultâneas compartilham o refresh; um 401 atrasado usa o token mais
-recente da mesma conta. Refresh com 401 ou nova 401 após a repetição encerra a sessão
-com navegação completa para /login?reason=expired, limpando caches.
-403, 5xx, timeout e falha de rede não são tratados como expiração.
+- `REFRESH_CLEANUP_ENABLED` (padrão `true`): `false` remove o job.
+- `REFRESH_CLEANUP_CRON` (padrão `0 30 3 * * *`): horário no fuso `app.time-zone`.
+- `REFRESH_CLEANUP_BATCH_SIZE` (padrão `500`): linhas por lote, de 1 a 10.000.
+- `REFRESH_CLEANUP_MAX_BATCHES` (padrão `100`): lotes por execução.
 
-O inicializador restaura a sessão via cookie ao abrir ou recarregar a aplicação.
-Ausência de sessão nessa tentativa inicial mantém o visitante anônimo, sem loop de
-redireção. Guards esperam a renovação quando a identidade existe e o access token venceu.
+## Frontend (plannerFyFront)
 
-Web Locks (`plannerfy-auth-session`) serializa refresh/logout entre abas da mesma
-origem quando disponível. Sem Web Locks, a concorrência é agrupada dentro de cada aba;
-uma colisão entre abas pode acionar a revogação conservadora por reuso e exigir login.
-Não há janela que reaceite tokens usados. Troca de conta detectada na renovação
-encerra a sessão antes de repetir requisições da conta anterior. Credenciais não são
-enviadas para origens ou caminhos fora da API configurada.
+A integração está em `src/app/core/auth` e em `docs/AUTHENTICATION.md` do frontend.
 
-Logout aguarda uma rotação pendente antes de revogar o cookie mais recente.
-Falha de logout é exibida na interface e permite tentar novamente; não simula
-revogação bem-sucedida. Logout em uma aba não encerra imediatamente as demais: elas
-seguem até o access token vencer e são levadas ao login na renovação seguinte.
-logout-all não tem botão. Não há tokens em localStorage/sessionStorage nem leitura
-de cookies por JavaScript.
+- O access token é considerado vencido 30 segundos antes de `expiresIn`; a próxima
+  requisição renova a sessão antes de ser enviada.
+- Um `401` provoca um único refresh e uma única repetição da requisição. Requisições
+  simultâneas compartilham o mesmo refresh.
+- Refresh com `401`, ou novo `401` após a repetição, encerra a sessão e leva a
+  `/login?reason=expired`, limpando caches. `403`, `5xx`, timeout e falha de rede não
+  são tratados como expiração.
+- Ao abrir ou recarregar a aplicação, o frontend tenta restaurar a sessão pelo cookie;
+  sem sessão, o visitante continua anônimo, sem loop de redirecionamento.
+- Web Locks (`plannerfy-auth-session`) serializa refresh e logout entre abas quando
+  disponível. Sem ele, uma colisão entre abas pode acionar a revogação por reuso e exigir
+  novo login.
+- O logout espera um refresh pendente e mostra erro se falhar. O logout em uma aba não
+  encerra as outras na hora: elas saem na renovação seguinte.
+- Não há tokens em `localStorage`/`sessionStorage` nem leitura de cookies por JavaScript.
 
-## Execução e implantação
+## Testes
 
-Use SPRING_PROFILES_ACTIVE=local somente no desenvolvimento HTTP localhost.
-Fora dos perfis local/test, HTTPS é obrigatório e os cookies são Secure.
-Os perfis prod/production mantêm essa exigência mesmo combinados com local/test.
-Em produção, configure TLS no servidor ou em proxy confiável que informe o esquema
-correto à aplicação. Se usar headers encaminhados, aceite-os somente desse proxy,
-removendo headers fornecidos pelo cliente. Nunca ative local/test em produção.
+- `RefreshSessionIntegrationTest`: login, refresh, expiração, reuso com revogação,
+  concorrência, logout local e global, isolamento, conta desativada, CSRF e CORS.
+- `SessionRequestFilterTest`: HTTPS e atributos do cookie.
+- `RefreshTokenCleanupTest`: limpeza diária.
+- `RefreshMigrationTest` (opcional): V4 em PostgreSQL descartável; veja [Setup](../SETUP.md#testes).
 
-A migration aditiva V4__refresh_token_sessions.sql depende de tb_users (V2).
-Não altere V1/V2/V3 nem desative validação Flyway. Embora V1/V2 estejam neste checkout,
-confira checksums e histórico do banco de destino antes de implantar.
-Nenhum banco da aplicação deve ser usado para os testes.
-
-Backend: .\\mvnw.cmd test. RefreshSessionIntegrationTest cobre login, refresh,
-expiração, reuso com revogação confirmada, concorrência, logout local/global,
-isolamento, conta desativada e CSRF/CORS. SessionRequestFilterTest cobre HTTPS e
-atributos do cookie. O perfil test usa explicitamente H2 em memória.
-Frontend: npm test -- --watch=false, npm run lint e npm run build; testes de auth
-cobrem credenciais, renovação agrupada, retry, restauração, expiração e logout.
-
-A política de rotação, reuso e inatividade segue
-[RFC 9700, seção 4.14](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.14).
-
-## Validação desta alteração
-
-- Frontend: a integração descrita na seção Angular foi concluída em 2026-10-08
-  (branch `JWT-Token-correction` do plannerFyFront). Até então o Angular não chamava
-  /users/refresh nem /users/logout, e a redução de JWT_TTL para PT15M encerrava a
-  sessão a cada 15 minutos. Validação: 36 testes de autenticação passaram; lint e
-  build de produção passaram. A suíte completa tem 1 falha preexistente, fora da
-  autenticação (`home-dashboard.service.spec.ts`).
-- Backend: 9 testes de fluxo passaram em H2 e novamente em PostgreSQL 18 temporário;
-  2 testes de HTTPS/cookie e 6 testes de configuração JWT passaram.
-- RefreshMigrationTest validou V4 e suas restrições em PostgreSQL temporário.
-  Ele só executa com REFRESH_TEST_URL=jdbc:postgresql://127.0.0.1:<porta>/postgres,
-  usando a conta refresh_test de um cluster descartável. A fixture mínima de
-  tb_users é criada em schema aleatório e revertida ao final.
-- A execução conjunta de MultiUserSecurityTest encontrou 3 erros preexistentes:
-  ValidEventTimeRange não declara groups, exigido pelo Bean Validation.
-  A anotação de eventos não foi alterada neste trabalho.
-- Não houve implantação nem acesso ao banco real. O teste isolado de V4 não
-  substitui a conferência do histórico Flyway completo do ambiente de destino.
+Referência: [RFC 9700, seção 4.14](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.14).
