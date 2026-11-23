@@ -28,15 +28,22 @@ class PingTest {
     @Autowired MockMvc mvc;
 
     @Test
-    void anonymousGetAndHeadReturnNoContentWithoutBodyOrSession() throws Exception {
-        for (var request : new MockHttpServletRequestBuilder[]{get("/ping"), head("/ping")}) {
-            mvc.perform(request)
-                    .andExpect(status().isNoContent())
-                    .andExpect(content().string(""))
-                    .andExpect(header().doesNotExist("Content-Type"))
-                    .andExpect(header().doesNotExist("Set-Cookie"))
-                    .andExpect(header().string("Cache-Control", "no-store"));
-        }
+    void anonymousGetReturnsPingTextWithoutSession() throws Exception {
+        mvc.perform(get("/ping"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Ping"))
+                .andExpect(content().contentTypeCompatibleWith("text/plain"))
+                .andExpect(header().doesNotExist("Set-Cookie"))
+                .andExpect(header().string("Cache-Control", "no-store"));
+    }
+
+    @Test
+    void anonymousHeadReturnsOkWithoutSession() throws Exception {
+        // MockMvc does not strip the body on HEAD; the servlet container does in production.
+        mvc.perform(head("/ping"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("Set-Cookie"))
+                .andExpect(header().string("Cache-Control", "no-store"));
     }
 
     @Test

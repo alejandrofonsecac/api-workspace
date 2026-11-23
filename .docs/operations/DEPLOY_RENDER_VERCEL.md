@@ -35,7 +35,7 @@ requisição seguinte espera a inicialização (cold start). Para evitar isso, u
 chama a API a cada 10 minutos:
 
 - URL: `https://<servico>.onrender.com/ping`, sempre em HTTPS; em HTTP o filtro de sessão responde `426`.
-- Método: `GET` ou `HEAD`. A resposta é `204` sem corpo e com `Cache-Control: no-store`.
+- Método: `GET` ou `HEAD`. A resposta é `200` com o texto `Ping` (`text/plain`; sem corpo em `HEAD`) e `Cache-Control: no-store`.
 - Sem cabeçalho `Authorization`: a rota é pública e um token inválido resultaria em `401`.
 
 `/ping` não consulta o banco nem serviços externos e não revela versão, estado ou horário, então
